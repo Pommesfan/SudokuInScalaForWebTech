@@ -4,9 +4,9 @@
 
 # Controller for Sudoku
 
-GET     /                           controllers.SudokuController.sudoku
+GET     /                           controllers.Phase10WebController.sudoku
 
-GET     /about                      controllers.SudokuController.about
+GET     /about                      controllers.Phase10WebController.about
 
 
 # Map static resources from the /public folder to the /assets URL path
