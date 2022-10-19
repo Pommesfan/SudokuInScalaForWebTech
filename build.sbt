@@ -1,5 +1,5 @@
 
-name := """Sudoku in Scala for WebTech"""
+name := """Phase10_Web"""
 
 version := "1.2"
 
