@@ -69,7 +69,6 @@ class TUI(controller: ControllerInterface) extends Observer {
   def update(e: OutputEvent): String = {
     val s = e match {
       case e: ProgramStartedEvent => {
-        println("A")
         mode = CREATE_PLAYERS
         "Namen eingeben:"
       }
@@ -81,7 +80,6 @@ class TUI(controller: ControllerInterface) extends Observer {
         val playerName = controller.getPlayers()
         e match {
           case e1: GoToInjectEvent => {
-            println("B")
             mode = INJECT
             printDiscardedCards(playerName, t.discardedCardDeck) + printCards(t.playerCardDeck.cards(currentPlayer)) +
               "\nKarten anlegen? Angabe: Spieler, Karte, Stapel, Position (FRONT/AFTER)"

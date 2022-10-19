@@ -1,7 +1,5 @@
 package utils
 
-import utils.OutputEvent
-
 trait Observer {
   def update(e: OutputEvent): String
 }
