@@ -9,6 +9,10 @@ import java.util.Scanner
 import scala.util.{Failure, Success, Try}
 
 class TUI(controller: ControllerInterface) extends Observer {
+  private var last_output = ""
+
+  def get_last_output = last_output
+
   val CREATE_PLAYERS = 1
   val SWITCH = 2
   val DISCARD = 3
@@ -18,24 +22,21 @@ class TUI(controller: ControllerInterface) extends Observer {
 
   val sc = new Scanner(System.in)
 
-  def start(): Unit =
-    controller.add(this)
-    new Thread {
-      override def run(): Unit =
-        while (true) {
-          val input = sc.nextLine()
-          input match {
-            case "undo" => controller.undo
-            case "exit" => System.exit(0)
-            case _ =>
-              val inputEvent_try = Try(createInputEvent(input, mode))
-              inputEvent_try match {
-                case Success(inputEvent) => controller.solve(inputEvent)
-                case Failure(inputEvent) => println("Eingaben ungültig")
-              }
-          }
+  //For WebApp directly call this without thread from above
+  def handle_input(input: String): Unit = input match {
+    case "undo" => controller.undo
+    case "exit" => System.exit(0)
+    case _ =>
+      val inputEvent_try = Try(createInputEvent(input, mode))
+      inputEvent_try match {
+        case Success(inputEvent) => controller.solve(inputEvent)
+        case Failure(inputEvent) => {
+          val s = "Eingaben ungültig"
+          println("s")
+          last_output = s
         }
-    }.start()
+      }
+  }
 
   def createInputEvent(input:String, mode:Int): InputEvent = mode match {
     case CREATE_PLAYERS => new DoCreatePlayerEvent(input.split(" ").toList)
@@ -68,6 +69,7 @@ class TUI(controller: ControllerInterface) extends Observer {
   def update(e: OutputEvent): String = {
     val s = e match {
       case e: ProgramStartedEvent => {
+        println("A")
         mode = CREATE_PLAYERS
         "Namen eingeben:"
       }
@@ -79,6 +81,7 @@ class TUI(controller: ControllerInterface) extends Observer {
         val playerName = controller.getPlayers()
         e match {
           case e1: GoToInjectEvent => {
+            println("B")
             mode = INJECT
             printDiscardedCards(playerName, t.discardedCardDeck) + printCards(t.playerCardDeck.cards(currentPlayer)) +
               "\nKarten anlegen? Angabe: Spieler, Karte, Stapel, Position (FRONT/AFTER)"
@@ -103,6 +106,7 @@ class TUI(controller: ControllerInterface) extends Observer {
         }
     }
     println(s)
+    last_output = s
     s
   }
 

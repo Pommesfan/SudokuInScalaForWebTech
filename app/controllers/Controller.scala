@@ -1,6 +1,5 @@
 package controllers
 
-import com.google.inject.{Guice, Inject}
 import model._
 import utils.Utils.{NEW_CARD, OPENCARD, randomColor, randomValue}
 import utils._
