@@ -12,7 +12,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   c.add(tui)
   c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
   tui.handle_input("PlayerA PlayerB")
-  def phase10AsText =  tui.get_last_output
 
   def about= Action {
     Ok(views.html.index())
