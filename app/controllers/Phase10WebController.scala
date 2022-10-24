@@ -22,4 +22,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     val html = Html.apply(tui.get_last_output.replace("\n", "<br>"))
     Ok(views.html.game(html))
   }
+
+  def submitInput(x : String):Action[AnyContent] = Action {
+    tui.handle_input(x)
+    phase10
+  }
 }
