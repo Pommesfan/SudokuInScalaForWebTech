@@ -14,7 +14,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
   tui.handle_input("PlayerA PlayerB")
 
-  def about= Action {
+  def about = Action {
     Ok(views.html.help())
   }
 
@@ -23,7 +23,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok(views.html.game(html))
   }
 
-  def submitInput(x : String):Action[AnyContent] = Action {
+  def submitInput(x: String): Action[AnyContent] = {
     tui.handle_input(x)
     phase10
   }
