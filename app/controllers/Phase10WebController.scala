@@ -4,6 +4,7 @@ import javax.inject._
 import play.api.mvc._
 import utils.ProgramStartedEvent
 import views.TUI
+import play.twirl.api.Html
 
 @Singleton
 class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
@@ -14,11 +15,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   tui.handle_input("PlayerA PlayerB")
 
   def about= Action {
-    Ok(views.html.index())
+    Ok(views.html.help())
   }
 
-  def sudoku = Action {
-    Ok(tui.get_last_output)
+  def phase10 = Action {
+    val html = Html.apply(tui.get_last_output.replace("\n", "<br>"))
+    Ok(views.html.game(html))
   }
-
 }

@@ -4,7 +4,7 @@
 
 # Controller for Sudoku
 
-GET     /                           controllers.Phase10WebController.sudoku
+GET     /                           controllers.Phase10WebController.phase10
 
 GET     /about                      controllers.Phase10WebController.about
 
