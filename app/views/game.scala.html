@@ -11,10 +11,10 @@
                 @tui_output
             </p>
 
-            <div class="submit">
-                <input class="input-normal-text" type="text" id ="submit" size="30">
-                <input class="input-normal-button" id="submit-button" type="submit" value="submit" onclick="submitInput()">
-            </div>
+            <form action="/game_move">
+                <label for="game_move">Next Game Move:</label><br>
+                <input type="text" id="game_move" name="game_move">
+            </form>
             <p>
             <div >
                 <a href="/help">Help</a>
