@@ -6,6 +6,8 @@
 
 GET     /                           controllers.Phase10WebController.phase10
 
+GET     /set_players                controllers.Phase10WebController.set_players(p1?="", p2?="", p3?="", p4?="")
+
 GET     /about                      controllers.Phase10WebController.about
 
 GET     /help                       controllers.Phase10WebController.help
