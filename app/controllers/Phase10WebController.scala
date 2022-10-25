@@ -15,6 +15,10 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   tui.handle_input("PlayerA PlayerB")
 
   def about = Action {
+    Ok(views.html.index())
+  }
+
+  def help = Action {
     Ok(views.html.help())
   }
 
