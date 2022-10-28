@@ -3,12 +3,17 @@
     <head>
         <meta charset="UTF-8">
         <title>Phase 10 Home</title>
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
     </head>
     <body>
         <h1>Phase 10</h1>
         Phase10 ist ein Kartenspiel, wo man 10 verschiedene Kombinationen von Karten(Phasen) erfüllen muss.
         <br>
         <div>
+            <picture>
+                <source media="(min-width:400px)" srcset="@routes.Assets.versioned("images/Phase10-Logo.png")">
+                <img srcset="@routes.Assets.versioned("images/Phase10-Logo.png")" alt="" style="width:auto;">
+            </picture>
             <form action="/set_players">
                 <label for="p1">Player 1:</label><br>
                 <input type="text" id="p1" name="p1" value=""><br>
