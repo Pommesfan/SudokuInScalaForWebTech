@@ -165,7 +165,6 @@ class TUI(controller: ControllerInterface) extends Observer {
     val g = controller.getGameData
     def r = g._1
     def t = g._2
-    def numberOfInputs = r.validators(t.current_player).getNumberOfInputs()
-    makeGroupedIndexList(input, numberOfInputs)
+    makeGroupedIndexList(input)
   }
 }

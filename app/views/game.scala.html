@@ -1,4 +1,4 @@
-@(tui_output: Html)
+@(tui_output: Html, input_form: Html)
 
 <html lang="en">
     <head>
@@ -10,12 +10,7 @@
             <p>
                 @tui_output
             </p>
-
-            <form action="/game_move">
-                <label for="game_move">Next Game Move:</label><br>
-                <input type="text" id="game_move" name="game_move">
-                <input type="submit" value="Submit">
-            </form>
+            @input_form
             <p>
             <div >
                 <a href="/help">Help</a>

@@ -2,9 +2,10 @@ package controllers
 
 import javax.inject._
 import play.api.mvc._
-import utils.{DoCreatePlayerEvent, ProgramStartedEvent}
+import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, ProgramStartedEvent, Utils}
 import views.TUI
 import play.twirl.api.Html
+import controllers.{DiscardControllerState, InjectControllerState, SwitchCardControllerState}
 
 @Singleton
 class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
@@ -44,13 +45,39 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     phase10
   }
 
+  def new_card(idx: String): Action[AnyContent] = {
+    c.solve(new DoSwitchCardEvent(idx.toInt, Utils.NEW_CARD))
+    phase10
+  }
+
+  def open_card(idx: String): Action[AnyContent] = {
+    c.solve(new DoSwitchCardEvent(idx.toInt, Utils.OPENCARD))
+    phase10
+  }
+
+  def no_discard(): Action[AnyContent] = {
+    c.solve(new DoNoDiscardEvent)
+    phase10
+  }
+
+  def discard(indices: String): Action[AnyContent] = {
+    c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(indices)))
+    phase10
+  }
+
+  def get_input_panel(state: ControllerStateInterface) = state match {
+    case _: SwitchCardControllerState => views.html.switch_card_from.apply()
+    case _: DiscardControllerState => views.html.discard_form.apply()
+    case _: InjectControllerState => views.html.inject_card_form.apply()
+  }
+
   def phase10 = Action {
     def state = c.getState
     if (state.isInstanceOf[InitialState]) {
       Ok(views.html.home())
     } else {
       val html = Html.apply(tui.get_last_output.replace("\n", "<br>"))
-      Ok(views.html.game(html))
+      Ok(views.html.game(html, get_input_panel(state)))
     }
   }
 
