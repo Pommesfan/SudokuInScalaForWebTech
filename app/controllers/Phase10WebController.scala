@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import play.api.mvc._
-import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, ProgramStartedEvent, Utils}
+import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, ProgramStartedEvent, Utils}
 import views.TUI
 import play.twirl.api.Html
 import controllers.{DiscardControllerState, InjectControllerState, SwitchCardControllerState}
@@ -62,6 +62,20 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
 
   def discard(indices: String): Action[AnyContent] = {
     c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(indices)))
+    phase10
+  }
+
+  def no_inject(): Action[AnyContent] = {
+    c.solve(new DoNoInjectEvent)
+    phase10
+  }
+
+  def inject(receiving_player:String, cardIndex:String, stashIndex:String, position:String): Action[AnyContent] = {
+    def stash_index =
+      if (position == "FRONT") Utils.INJECT_TO_FRONT
+      else if(position=="AFTER") Utils.INJECT_AFTER
+      else 0
+    c.solve(new DoInjectEvent(receiving_player.toInt, cardIndex.toInt, stashIndex.toInt, stash_index))
     phase10
   }
 
