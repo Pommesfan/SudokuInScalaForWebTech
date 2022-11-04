@@ -8,7 +8,7 @@ import controllers.{DiscardControllerState, InjectControllerState, SwitchCardCon
 
 @Singleton
 class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-  val c = new Controller
+  var c = new Controller
   val tui = new TUI(c)
   c.add(tui)
   c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
@@ -35,7 +35,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       l
     }
 
-    c.solve(new DoCreatePlayerEvent(make_list()))
+    c.solve(new DoCreatePlayerEvent(make_list().reverse))
     phase10
   }
 
@@ -70,6 +70,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       else if(position=="AFTER") Utils.INJECT_AFTER
       else 0
     c.solve(new DoInjectEvent(receiving_player.toInt, cardIndex.toInt, stashIndex.toInt, stash_index))
+    phase10
+  }
+
+  def reset(): Action[AnyContent] = {
+    c = new Controller
     phase10
   }
 
