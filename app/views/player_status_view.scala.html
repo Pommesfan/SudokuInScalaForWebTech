@@ -1,0 +1,16 @@
+@import model.Card
+@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card])
+
+<div>
+    Aktueller Spieler: @current_player<br><br>
+    @if(!newCard.isEmpty){
+        Neue Karte:<br>
+        @newCard.get.toString<br>
+    }
+    Offenliegende Karte:<br>
+    @openCard.toString<br><br>
+    Karten des Spielers:<br><br>
+    @for(c <- cardStash) {
+        @c<br>
+    }
+</div>

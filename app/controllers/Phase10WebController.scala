@@ -85,18 +85,29 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     case _: InjectControllerState => views.html.inject_card_form.apply()
   }
 
+  def render_player_status(c: Controller) = {
+    val state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
+    def r = state.r
+    def t = state.t
+    def players = state.players
+    def current_player = t.current_player
+    def player_name = players(current_player)
+
+    def get_new_card = state match {
+      case s: SwitchCardControllerState => Some(s.newCard)
+      case _ => None
+    }
+
+    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player))
+  }
+
   def phase10 = Action {
     def state = c.getState
     if (state.isInstanceOf[InitialState]) {
       Ok(views.html.home())
     } else {
-      val html = Html.apply(tui.get_last_output.replace("\n", "<br>"))
-      Ok(views.html.game(html, get_input_panel(state)))
+      def player_status = render_player_status(c)
+      Ok(views.html.game(player_status, get_input_panel(state)))
     }
-  }
-
-  def submitInput(x: String): Action[AnyContent] = {
-    tui.handle_input(x)
-    phase10
   }
 }
