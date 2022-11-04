@@ -4,7 +4,6 @@ import javax.inject._
 import play.api.mvc._
 import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, ProgramStartedEvent, Utils}
 import views.TUI
-import play.twirl.api.Html
 import controllers.{DiscardControllerState, InjectControllerState, SwitchCardControllerState}
 
 @Singleton
@@ -13,11 +12,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   val tui = new TUI(c)
   c.add(tui)
   c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
-  //tui.handle_input("PlayerA PlayerB")
-
-  def about = Action {
-    Ok(views.html.index())
-  }
 
   def help = Action {
     Ok(views.html.help())
