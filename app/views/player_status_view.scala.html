@@ -10,7 +10,8 @@
     Offenliegende Karte:<br>
     @openCard.toString<br><br>
     Karten des Spielers:<br><br>
-    @for(c <- cardStash) {
-        @c<br>
+    @for(i <- 0 until cardStash.size) {
+        @i: @cardStash(i)<br>
     }
+    <br>
 </div>

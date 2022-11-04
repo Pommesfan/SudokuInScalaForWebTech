@@ -101,13 +101,20 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player))
   }
 
+  def render_discarded_cards(c: Controller) = {
+    def state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
+    def cards = state.t.discardedCardDeck.cards
+    views.html.discarded_cards_views(state.players, cards)
+  }
+
   def phase10 = Action {
     def state = c.getState
     if (state.isInstanceOf[InitialState]) {
       Ok(views.html.home())
     } else {
       def player_status = render_player_status(c)
-      Ok(views.html.game(player_status, get_input_panel(state)))
+      def discardedCards = render_discarded_cards(c)
+      Ok(views.html.game(discardedCards, player_status, get_input_panel(state)))
     }
   }
 }

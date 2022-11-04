@@ -1,0 +1,17 @@
+@import model.Card
+@(players: List[String], cards: List[Option[List[List[Card]]]])
+
+Abgelegte Karten:<br><br>
+@for(i <- 0 until players.size) {
+    @players(i):<br>
+    @if(cards(i).isEmpty){
+        Keine Karten<br><br>
+    } else {
+        @for(stashes <- cards(i).get) {
+            @for(card <- stashes) {
+                @card.toString<br>
+            }
+            <br>
+        }
+    }
+}
