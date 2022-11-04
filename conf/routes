@@ -12,7 +12,6 @@ GET     /about                      controllers.Phase10WebController.about
 
 GET     /help                       controllers.Phase10WebController.help
 
-
 GET     /new_card/                  controllers.Phase10WebController.new_card(card_index?="")
 
 GET     /open_card/                 controllers.Phase10WebController.open_card(card_index?="")
