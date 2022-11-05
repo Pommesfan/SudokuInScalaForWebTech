@@ -8,26 +8,44 @@
     <body>
         <link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/home.css")' />
         <h1>Phase 10</h1>
-        Phase10 ist ein Kartenspiel, wo man 10 verschiedene Kombinationen von Karten(Phasen) erfüllen muss.
+        <p>Phase10 ist ein Kartenspiel, wo man 10 verschiedene Kombinationen von Karten(Phasen) erfüllen muss.</p>
         <br>
         <div class="nameInput">
             <picture>
                 <source media="(min-width:400px)" srcset="@routes.Assets.versioned("images/Phase10-Logo.png")">
-                <img srcset="@routes.Assets.versioned("images/Phase10-Logo.png")" alt="" style="width:auto;">
+                <img class="picture" srcset="@routes.Assets.versioned("images/Phase10-Logo.png")" alt="" style="width: auto;">
             </picture>
-            <form action="/set_players">
-                <label for="p1">Player 1:</label><br>
-                <input type="text" id="p1" name="p1" value=""><br>
-                <label for="p2">Player 2:</label><br>
-                <input type="text" id="p1" name="p2" value=""><br>
-                <label for="p3">Player 3:</label><br>
-                <input type="text" id="p1" name="p3" value=""><br>
-                <label for="p4">Player 4:</label><br>
-                <input type="text" id="p1" name="p4" value=""><br>
-                <input type="submit" class="playerNamesSubmit" value="Starten">
-            </form>
+            @* </div>*@
+            <div class="name">
+                <form action="/set_players">
+                    <div class="p1">
+                    <label for="p1">Player 1:</label>
+                    <br>
+                    <input type="text" id="p1" name="p1" value="">
+
+                    </div>
+                    <div class="p2">
+                    <label for="p2">Player 2:</label>
+                    <br>
+                    <input type="text" id="p1" name="p2" value="">
+
+                    </div>
+                    <div class="p3">
+                    <label for="p3">Player 3:</label>
+                    <br>
+                    <input type="text" id="p1" name="p3" value="">
+
+                    </div>
+                    <div class="p4">
+                    <label for="p4">Player 4:</label>
+                    <br>
+                    <input type="text" id="p1" name="p4" value="">
+                    </div>
+                    <input type="submit" class="playerNamesSubmit" value="Starten">
+                </form>
+            </div>
         </div>
-        <div>
+        <div class="refer">
             <a href="/help">Help</a>
         </div>
     </body>

@@ -1,8 +1,45 @@
-.nameInput {
+h1{
+   text-align: center;
+}
+p{
+    text-align: center;
+}
+.p1{
+    margin: 10px;
+}
+
+.p2{
+    margin: 10px;
+}
+
+.p3{
+    margin: 10px;
+}
+
+.p4{
+    margin: 10px;
+}
+.picture{
+    float: left;
+}
+.name{
+    text-align: center;
     color: darkslateblue;
+}
+.nameInput::after {
+
+    content: "";
+    clear: both;
+    display: table;
+    color: darkslateblue;
+
 }
 
 .playerNamesSubmit {
-    color: saddlebrown;
+    color: #c71717;
     font-weight: bold;
+}
+
+.refer{
+    margin-top: 10px;
 }
