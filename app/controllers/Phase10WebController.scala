@@ -79,7 +79,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   }
 
   def get_input_panel(state: ControllerStateInterface) = state match {
-    case _: SwitchCardControllerState => views.html.switch_card_from.apply()
+    case _: SwitchCardControllerState => views.html.switch_card_form.apply()
     case _: DiscardControllerState => views.html.discard_form.apply()
     case _: InjectControllerState => views.html.inject_card_form.apply()
   }
