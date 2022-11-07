@@ -40,12 +40,16 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   }
 
   def new_card(idx: String): Action[AnyContent] = {
-    c.solve(new DoSwitchCardEvent(idx.toInt, Utils.NEW_CARD))
+    if(idx.nonEmpty) {
+      c.solve(new DoSwitchCardEvent(idx.toInt, Utils.NEW_CARD))
+    }
     phase10
   }
 
   def open_card(idx: String): Action[AnyContent] = {
-    c.solve(new DoSwitchCardEvent(idx.toInt, Utils.OPENCARD))
+    if (idx.nonEmpty) {
+      c.solve(new DoSwitchCardEvent(idx.toInt, Utils.OPENCARD))
+    }
     phase10
   }
 
@@ -97,7 +101,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       case _ => None
     }
 
-    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player))
+    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player), state)
   }
 
   def render_discarded_cards(c: Controller) = {

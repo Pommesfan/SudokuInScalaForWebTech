@@ -1,5 +1,5 @@
 @import model.Card
-@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card])
+@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card], state: ControllerStateInterface)
 
 <div>
     Aktueller Spieler: @current_player<br><br>
@@ -10,8 +10,14 @@
     Offenliegende Karte:<br>
     @openCard.toString<br><br>
     Karten des Spielers:<br><br>
-    @for(i <- 0 until cardStash.size) {
-        @i: @cardStash(i)<br>
-    }
+    <form id="cardstash">
+        @for(i <- 0 until cardStash.size) {
+            @i: @cardStash(i)
+            @if(state.isInstanceOf[SwitchCardControllerState]) {
+                <input type="radio" name="card_index" value=@i.toString>
+            }
+            <br>
+        }
+    </form>
     <br>
 </div>
