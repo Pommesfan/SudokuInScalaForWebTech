@@ -1,9 +1,37 @@
-body{
-    text-align: center;
-}
+
 
 h1{
     border: 2mm ridge #c71717;
     background: #1f40e5;
     color: floralwhite;
+}
+
+.text{
+    text-align: center;
+}
+
+.intro{
+    margin-bottom: 20px;
+}
+
+.gameplay{
+    border: 1mm dashed #1f40e5;
+    border-radius: 10mm;
+}
+
+.phase{
+    border: 1mm dashed #c71717;
+    border-radius: 10mm;
+    margin-top: 5mm;
+}
+
+.gameend{
+    border: 1mm dashed #1f40e5;
+    border-radius: 10mm;
+    margin-top: 5mm;
+}
+
+a{
+    text-align: left;
+
 }
