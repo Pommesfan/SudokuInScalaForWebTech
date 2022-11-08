@@ -1,4 +1,6 @@
-
+body{
+    background-image: -moz-linear-gradient(to right,#1f40e5, #c71717, #1f40e5);
+}
 
 h1{
     border: 2mm ridge #c71717;
@@ -8,6 +10,7 @@ h1{
 
 .text{
     text-align: center;
+    color: floralwhite;
 }
 
 .intro{
@@ -33,5 +36,7 @@ h1{
 
 a{
     text-align: left;
-
+    color: antiquewhite;
+    display: inline-block;
+    margin-top: 5mm;
 }
