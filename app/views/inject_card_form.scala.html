@@ -1,12 +1,2 @@
-<form id="inject_form" action="/inject">
-    <label> Zu Spieler(Index):</label><br>
-    <input type="text" id="receiving_player" name="receiving_player"><br>
-    <label> Karte:</label><br>
-    <input type="text" id="cardIndex" name="cardIndex"><br>
-    <label> Zu Stapel(Index):</label><br>
-    <input type="text" id="stashIndex" name="stashIndex"><br>
-    <label> Position(FRONT/AFTER):</label><br>
-    <input type="text" id="position" name="position"><br>
-    <input type="submit" value="Anlegen"><br>
-</form>
-<button type="submit" form="inject_form" formaction="/no_inject">Nicht anlegen</button>
+<input type="submit" form="cardstash" formaction="/inject" value="Anlegen"><br>
+<button type="submit" form="cardstash" formaction="/no_inject">Nicht anlegen</button>

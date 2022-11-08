@@ -10,14 +10,12 @@
     Offenliegende Karte:<br>
     @openCard.toString<br><br>
     Karten des Spielers:<br><br>
-    <form id="cardstash">
-        @for(i <- 0 until cardStash.size) {
-            @i: @cardStash(i)
-            @if(state.isInstanceOf[SwitchCardControllerState]) {
-                <input type="radio" name="card_index" value=@i.toString>
-            }
-            <br>
+    @for(i <- 0 until cardStash.size) {
+        @i: @cardStash(i)
+        @if(state.isInstanceOf[SwitchCardControllerState] || state.isInstanceOf[InjectControllerState]) {
+            <input type="radio" name="card_index" value=@i.toString>
         }
-    </form>
+        <br>
+    }
     <br>
 </div>

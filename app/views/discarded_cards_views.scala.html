@@ -1,5 +1,8 @@
 @import model.Card
-@(players: List[String], cards: List[Option[List[List[Card]]]])
+@(players: List[String], cards: List[Option[List[List[Card]]]], state: ControllerStateInterface)
+
+@radioButtons = @{state.isInstanceOf[InjectControllerState]}
+@stash = @{0}
 
 Abgelegte Karten:<br><br>
 @for(i <- 0 until players.size) {
@@ -7,9 +10,16 @@ Abgelegte Karten:<br><br>
     @if(cards(i).isEmpty){
         Keine Karten<br><br>
     } else {
-        @for(stashes <- cards(i).get) {
-            @for(card <- stashes) {
+        @for(j <- 0 until cards(i).get.size) {
+            @if(radioButtons) {
+                <input type="radio" name="inject_to" value=@{i.toString + "_" + j.toString + "_FRONT"}>
+            }
+            <br>
+            @for(card <- cards(i).get(j)) {
                 @card.toString<br>
+            }
+            @if(radioButtons) {
+                <input type="radio" name="inject_to" value=@{i.toString + "_" + j.toString + "_AFTER"}>
             }
             <br>
         }

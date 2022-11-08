@@ -68,12 +68,21 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     phase10
   }
 
-  def inject(receiving_player:String, cardIndex:String, stashIndex:String, position:String): Action[AnyContent] = {
-    def stash_index =
-      if (position == "FRONT") Utils.INJECT_TO_FRONT
-      else if(position=="AFTER") Utils.INJECT_AFTER
-      else 0
-    c.solve(new DoInjectEvent(receiving_player.toInt, cardIndex.toInt, stashIndex.toInt, stash_index))
+  def inject(inject_to: String, card_index: String): Action[AnyContent] = {
+    if(inject_to.nonEmpty && card_index.nonEmpty) {
+      val inject_to_split = inject_to.split("_")
+
+      def receiving_player = inject_to_split(0)
+      def stashIndex = inject_to_split(1)
+      def position = inject_to_split(2)
+
+      def stash_index =
+        if (position == "FRONT") Utils.INJECT_TO_FRONT
+        else if (position == "AFTER") Utils.INJECT_AFTER
+        else 0
+
+      c.solve(new DoInjectEvent(receiving_player.toInt, card_index.toInt, stashIndex.toInt, stash_index))
+    }
     phase10
   }
 
@@ -107,7 +116,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   def render_discarded_cards(c: Controller) = {
     def state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
     def cards = state.t.discardedCardDeck.cards
-    views.html.discarded_cards_views(state.players, cards)
+    views.html.discarded_cards_views(state.players, cards, state)
   }
 
   def phase10 = Action {

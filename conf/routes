@@ -20,7 +20,7 @@ GET     /discard                    controllers.Phase10WebController.discard(car
 
 GET     /no_inject                  controllers.Phase10WebController.no_inject()
 
-GET     /inject                     controllers.Phase10WebController.inject(receiving_player?="", cardIndex?="", stashIndex?="", position?="")
+GET     /inject                     controllers.Phase10WebController.inject(inject_to?="", card_index?="")
 
 GET     /reset                      controllers.Phase10WebController.reset()
 
