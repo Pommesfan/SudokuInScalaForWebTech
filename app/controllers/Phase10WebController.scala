@@ -116,7 +116,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   def render_discarded_cards(c: Controller) = {
     def state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
     def cards = state.t.discardedCardDeck.cards
-    views.html.discarded_cards_views(state.players, cards, state)
+    views.html.discarded_cards_view(state.players, cards, state)
   }
 
   def phase10 = Action {
