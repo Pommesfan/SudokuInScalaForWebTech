@@ -1,6 +1,9 @@
 @import model.Card
-@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card], state: ControllerStateInterface)
+@import utils.{GameStartedEvent, GoToInjectEvent, NewRoundEvent, OutputEvent, TurnEndedEvent}
+@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card], e:OutputEvent)
 
+@newTurn = @{e.isInstanceOf[GameStartedEvent] || e.isInstanceOf[NewRoundEvent] || e.isInstanceOf[TurnEndedEvent]}
+@radioButtons = @{newTurn || e.isInstanceOf[GoToInjectEvent]}
 <div>
     Aktueller Spieler: @current_player<br><br>
     @if(!newCard.isEmpty){
@@ -12,7 +15,7 @@
     Karten des Spielers:<br><br>
     @for(i <- 0 until cardStash.size) {
         @i: @cardStash(i)
-        @if(state.isInstanceOf[SwitchCardControllerState] || state.isInstanceOf[InjectControllerState]) {
+        @if(radioButtons) {
             <input type="radio" name="card_index" value=@i.toString>
         }
         <br>

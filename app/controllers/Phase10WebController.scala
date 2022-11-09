@@ -1,17 +1,24 @@
 package controllers
 
+import model.{RoundData, TurnData}
+
 import javax.inject._
 import play.api.mvc._
-import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, ProgramStartedEvent, Utils}
+import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, ProgramStartedEvent, TurnEndedEvent, Utils}
 import views.TUI
-import controllers.{DiscardControllerState, InjectControllerState, SwitchCardControllerState}
 
 @Singleton
-class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractController(cc) with Observer {
+  private var lastEvent: OutputEvent = new ProgramStartedEvent
   var c = new Controller
   val tui = new TUI(c)
-  c.add(tui)
+  c.add(this)
   c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
+
+  override def update(e: OutputEvent): String = {
+    lastEvent = e
+    ""
+  }
 
   def help = Action {
     Ok(views.html.help())
@@ -91,32 +98,31 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     phase10
   }
 
-  def get_input_panel(state: ControllerStateInterface) = state match {
-    case _: SwitchCardControllerState => views.html.switch_card_form.apply()
-    case _: DiscardControllerState => views.html.discard_form.apply()
-    case _: InjectControllerState => views.html.inject_card_form.apply()
+  def get_input_panel() = lastEvent match {
+    case _: GameStartedEvent => views.html.switch_card_form.apply()
+    case _: NewRoundEvent => views.html.switch_card_form.apply()
+    case _: TurnEndedEvent => views.html.switch_card_form.apply()
+    case _: GoToDiscardEvent => views.html.discard_form.apply()
+    case _: GoToInjectEvent => views.html.inject_card_form.apply()
   }
 
-  def render_player_status(c: Controller) = {
-    val state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
-    def r = state.r
-    def t = state.t
-    def players = state.players
+  def render_player_status(players:List[String], r:RoundData, t:TurnData) = {
     def current_player = t.current_player
     def player_name = players(current_player)
 
-    def get_new_card = state match {
-      case s: SwitchCardControllerState => Some(s.newCard)
+    def get_new_card = lastEvent match {
+      case e: GameStartedEvent => Some(e.newCard)
+      case e: NewRoundEvent => Some(e.newCard)
+      case e: TurnEndedEvent => Some(e.newCard)
       case _ => None
     }
 
-    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player), state)
+    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player), lastEvent)
   }
 
-  def render_discarded_cards(c: Controller) = {
-    def state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
-    def cards = state.t.discardedCardDeck.cards
-    views.html.discarded_cards_view(state.players, cards, state)
+  def render_discarded_cards(players: List[String], r: RoundData, t: TurnData) = {
+    def cards = t.discardedCardDeck.cards
+    views.html.discarded_cards_view(players, cards, lastEvent)
   }
 
   def phase10 = Action {
@@ -124,9 +130,13 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     if (state.isInstanceOf[InitialState]) {
       Ok(views.html.home())
     } else {
-      def player_status = render_player_status(c)
-      def discardedCards = render_discarded_cards(c)
-      Ok(views.html.game(discardedCards, player_status, get_input_panel(state)))
+      val gameRunningState = state.asInstanceOf[GameRunningControllerStateInterface]
+      def players = gameRunningState.players
+      def r = gameRunningState.r
+      def t = gameRunningState.t
+      def player_status = render_player_status(players, r, t)
+      def discardedCards = render_discarded_cards(players, r, t)
+      Ok(views.html.game(discardedCards, player_status, get_input_panel()))
     }
   }
 }

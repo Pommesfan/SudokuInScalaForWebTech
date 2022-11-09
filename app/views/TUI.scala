@@ -167,4 +167,6 @@ class TUI(controller: ControllerInterface) extends Observer {
     def t = g._2
     makeGroupedIndexList(input)
   }
+
+  controller.add(this)
 }

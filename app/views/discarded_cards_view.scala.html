@@ -1,7 +1,8 @@
 @import model.Card
-@(players: List[String], cards: List[Option[List[List[Card]]]], state: ControllerStateInterface)
+@import utils.{OutputEvent, GoToInjectEvent}
+@(players: List[String], cards: List[Option[List[List[Card]]]], e: OutputEvent)
 
-@radioButtons = @{state.isInstanceOf[InjectControllerState]}
+@radioButtons = @{e.isInstanceOf[GoToInjectEvent]}
 @stash = @{0}
 @cardStash(i: Int) = @{cards(i).get}
 
