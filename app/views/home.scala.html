@@ -14,11 +14,16 @@
         <p class = "jumbo"> Phase10 ist ein Kartenspiel, wo man 10 verschiedene Kombinationen von Karten(Phasen) erfüllen muss.</p>
         <br>
         <div class="nameInput">
+            <div class="container">
+            <div class="row">
+            <div class="col-lg-10">
             <picture>
                 <source media="(min-width:400px)" srcset="@routes.Assets.versioned("images/Phase10-Logo.png")">
                 <img class="picture" srcset="@routes.Assets.versioned("images/Phase10-Logo.png")" alt="" style="width: auto;">
             </picture>
+            </div>
             @* </div>*@
+            <div class="col-lg-2">
             <div class="name">
                 <form action="/set_players">
                     <div class="p1">
@@ -47,7 +52,10 @@
                     <input type="submit" class="btn btn-primary" value="Starten">
                 </form>
             </div>
+            </div>
+            </div>
+            </div>
         </div>
-            <a href="/help">Help</a>
+        <a href="/help">Help</a>
     </body>
 </html>
