@@ -24,6 +24,10 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok(views.html.help())
   }
 
+  def about = Action {
+    Ok(views.html.about())
+  }
+
   def set_players(p1:String, p2:String, p3:String, p4:String) = {
     def make_list(): List[String] = {
       var l = List[String]()

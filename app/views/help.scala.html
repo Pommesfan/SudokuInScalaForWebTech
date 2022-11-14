@@ -2,49 +2,39 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Phase 10 Hilfseite</title>
+        <title>Phase 10 Hilfsseite</title>
         <link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/help.css")' />
     </head>
     <body>
         <div class="text">
-            <div class="intro">
-                <h1>Hilfe zu Phase 10</h1>
-                Phase 10 ist ein Kartenspiel.
-                <br>Diese Implementierung lässt mehrere Spieler zu.
-            </div>
-            <div class="gameplay">
-                <h2>Ablauf</h2>
+            <h1>Hilfe zu Phase 10</h1>
+            <div class="look">
+                <h2>Was sehe ich:</h2>
                 <p>
-    Die Spieler müssen insgesamt 10 Phasen durchlaufen.
-                    In jeder Phase muss man bestimmte Kombinationen aus Karten ablegen.
-                    Jeder Spieler erhält 10 Karten, mit denen er versuchen muss seine Phase zu beenden.
-                    Der Spieler, der anfängt, zieht verdeckt eine Karte vom Stapel oder nimmt die oberste Karte des Ablagestapels.
-                    Wenn er nun die erforderte Phase hat, kann er sie ablegen. Am Ende eines Zuges legt man eine beliebige Karte auf den Ablagestapel.
-                    Jetzt ist der nächste Spieler am Zug.
+                    Oben werden die abgelegten Karten (die Phasen) der Spieler angezeigt
+                    <br> Als nächstes wird der aktuelle Spieler, also der Spieler, der gerade am Zug ist, angezeigt.
+                    <br> Dann kommen die Karten, die man ziehen könnte. Entweder die neue Karte oder die offenliegende Karte vom Spieler davor.
+                    <br> Zum Schluss kommen noch die Karten vom aktuellen Spieler.
                 </p>
             </div>
-            <div class="phase">
-                <h2>Phasen:</h2>
-                <ol type="1">
-                    <li>Drillinge</li>
-                    <li> Drillinge & Viererfolge</li>
-                    <li>Vierling & Viererfolge</li>
-                    <li>Siebernerfolge</li>
-                    <li>Achterfolge</li>
-                    <li>Neunerfolge</li>
-                    <li>2 Vierlinge</li>
-                    <li>7 Karten einer Farbe</li>
-                    <li>Fünfling & Zwilling</li>
-                    <li>Fünfling & Drilling</li>
-                </ol>
+            <div class="buttons">
+                <h2>Wofür sind die Buttons:</h2>
+                <ul>
+                    <li>Radiobutton: Damit kann ausgewählt werden, welche Karte abgelegt/weggeschmissen werden soll.</li>
+                    <li>Checkbox: Hier werden diejenigen Karten ausgewählt, die man als Phase ablegen will.
+                        Die erste Checkbox für die erste Phase und die zweite Checkbox für die zweite Phase.</li>
+                </ul>
             </div>
-            <div class="gameend">
-                <h2>Ziel des Spiels</h2>
-                <p>Der Spieler hat gewonnen der zuerst seine 10. Phase erfolgreich abgeschlossen hat.</p>
+            <div class="game">
+                <h2>Wie kann ich jetzt spielen:</h2>
+                <p>
+                    Man wählt die Karte mittels Radiobutton aus, die ausgetauscht werden soll, dann drückt man entweder den "Neue Karte" oder "Offenliegende Karte" Button.
+                    Fortsetzung folgt ...
+                </p>
             </div>
         </div>
-            <div>
-                <a href="/">Back to Playing-Site</a>
-            </div>
+        <div>
+            <a href="/">Back to Playing-Site</a>
+        </div>
     </body>
 </html>

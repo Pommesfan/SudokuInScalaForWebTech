@@ -13,22 +13,18 @@ h1{
     color: floralwhite;
 }
 
-.intro{
-    margin-bottom: 20px;
-}
-
-.gameplay{
+.look{
     border: 1mm dashed #1f40e5;
     border-radius: 10mm;
 }
 
-.phase{
+.buttons{
     border: 1mm dashed #c71717;
     border-radius: 10mm;
     margin-top: 5mm;
 }
 
-.gameend{
+.game{
     border: 1mm dashed #1f40e5;
     border-radius: 10mm;
     margin-top: 5mm;
