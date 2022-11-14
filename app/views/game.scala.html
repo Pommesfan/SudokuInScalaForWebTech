@@ -4,6 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Phase 10 Playing-Site</title>
+        <link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/game.css")' />
         <link href="@routes.Assets.versioned("stylesheets/bootstrap.min.css")" rel="stylesheet">
     </head>
     <body>
@@ -12,10 +13,10 @@
                 <div class="row">
                     <form id="cardstash">
                         <div class="col w-50">
-                            @discarded_cards
+                        @discarded_cards
                         </div>
                         <div class="col w-50">
-                            @player_status
+                        @player_status
                         </div>
                     </form>
                 </div>
@@ -24,13 +25,35 @@
                         @input_form
                         <a href="/help">Help</a>
                         <br>
-                        <form id="reset_form" action="/reset">
-                            <input type="submit" class="btn btn-outline-warning" value="Reset">
-                        </form>
+
+                            <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetModal">
+                            Reset Game &#8634
+                        </button>
+
+                            <!-- Modal -->
+                        <div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-labelledby="resetModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document" >
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="resetModalLabel">Are you sure?</h5>
+                                    </div>
+                                    <div class="modal-body">
+                                        Do you really want to reset the game?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <form id="reset_form" action="/reset">
+                                            <input type="submit" class="btn btn-outline-warning" value="Reset">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <p>
         </div>
+        <script type="text/javascript" src="@routes.Assets.versioned("javascripts/bootstrap.bundle.min.js")"></script>
     </body>
 </html>
