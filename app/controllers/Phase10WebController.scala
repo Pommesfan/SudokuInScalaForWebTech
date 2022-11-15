@@ -121,7 +121,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       case _ => None
     }
 
-    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player), lastEvent)
+    def cardGroupSize = r.validators(current_player).getNumberOfInputs().size
+
+    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player), lastEvent, cardGroupSize)
   }
 
   def render_discarded_cards(players: List[String], r: RoundData, t: TurnData) = {

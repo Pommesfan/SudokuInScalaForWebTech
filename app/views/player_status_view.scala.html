@@ -1,9 +1,10 @@
 @import model.Card
-@import utils.{GameStartedEvent, GoToInjectEvent, NewRoundEvent, OutputEvent, TurnEndedEvent}
-@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card], e:OutputEvent)
+@import utils.{GameStartedEvent, GoToInjectEvent, NewRoundEvent, OutputEvent, TurnEndedEvent, GoToDiscardEvent}
+@(current_player:String, openCard:Card, newCard:Option[Card], cardStash: List[Card], e:OutputEvent, cardGroupSize: Int)
 
 @newTurn = @{e.isInstanceOf[GameStartedEvent] || e.isInstanceOf[NewRoundEvent] || e.isInstanceOf[TurnEndedEvent]}
 @radioButtons = @{newTurn || e.isInstanceOf[GoToInjectEvent]}
+@checkboxen = @{e.isInstanceOf[GoToDiscardEvent]}
 <div>
     Aktueller Spieler: @current_player<br><br>
     @if(!newCard.isEmpty){
@@ -19,23 +20,22 @@
         @i: @cardStash(i)
             </div>
         @if(radioButtons) {
-                <div class="col-1">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="card_index" value=@i.toString>
-            </div>
+            <div class="col-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="card_index" value=@i.toString>
                 </div>
-                <div class="col-1">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
             </div>
-                </div>
-                <div class="col-1">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
-            </div>
-                </div>
-        </div>
         }
+        @if(checkboxen) {
+            @for(i <- 0 until cardGroupSize) {
+                <div class="col-1">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
+                    </div>
+                </div>
+            }
+        }
+        </div>
         <br>
     }
     <br>
