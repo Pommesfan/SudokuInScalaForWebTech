@@ -146,7 +146,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       def discardedCards = render_discarded_cards(players, r, t)
       def alert_new_round = lastEvent match {
         case _: NewRoundEvent => Some(tui.printNewRound(players, r))
-        case _: GameStartedEvent => Some("Erste Phase: Zwei Drillinge")
+        case _: GameStartedEvent => Some("Erste Phase: " + r.validators(0).description)
         case _ => None
       }
       Ok(views.html.game(discardedCards, player_status, get_input_panel(), alert_new_round))
