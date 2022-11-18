@@ -1,6 +1,5 @@
-<form id="discard_form" action="/discard">
-    <label> Abzulegende Karten Format: 0 1 2 : 3 4 5</label><br>
-    <input type="text" id="card_indices" name="card_indices">
-    <input type="submit" class="btn btn-success" value="Ablegen">
+<form id="discard_form">
+    <button type="submit" id="submit_discard" name="card_indices" value="" formaction="/discard" class="btn btn-success">Ablegen</button>
+    <button type="submit" class="btn btn-secondary" formaction="/no_discard">Nicht ablegen</button>
 </form>
-<button type="submit" class="btn btn-secondary" form="discard_form" formaction="/no_discard">Nicht ablegen</button>
+<script src="@routes.Assets.versioned("/javascripts/discard_form.js")" type="text/javascript"></script>

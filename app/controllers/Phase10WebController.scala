@@ -70,7 +70,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   }
 
   def discard(indices: String): Action[AnyContent] = {
-    c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(indices)))
+    if(indices.nonEmpty) {
+      c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(indices)))
+    }
     phase10
   }
 
