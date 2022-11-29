@@ -1,6 +1,7 @@
 package controllers
 
 import model.{RoundData, TurnData}
+import play.api.libs.json.JsObject
 
 import javax.inject._
 import play.api.mvc._
@@ -79,6 +80,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   def no_inject(): Action[AnyContent] = {
     c.solve(new DoNoInjectEvent)
     phase10
+  }
+
+  def post_switch_cards = Action { request =>
+    val mode = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("mode").get.toString()
+    val index = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("index").get.toString().toInt
+    def mode_to_Int = if(mode == "\"new\"") Utils.NEW_CARD else if(mode == "\"open\"") Utils.OPENCARD else -1
+    c.solve(new DoSwitchCardEvent(index, mode_to_Int))
+    Ok("")
   }
 
   def inject(inject_to: String, card_index: String): Action[AnyContent] = {

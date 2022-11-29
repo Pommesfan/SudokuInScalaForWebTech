@@ -24,6 +24,9 @@ GET     /no_inject                  controllers.Phase10WebController.no_inject()
 
 GET     /inject                     controllers.Phase10WebController.inject(inject_to?="", card_index?="")
 
++nocsrf
+POST    /post_switch_cards          controllers.Phase10WebController.post_switch_cards()
+
 GET     /reset                      controllers.Phase10WebController.reset()
 
 # Map static resources from the /public folder to the /assets URL path
