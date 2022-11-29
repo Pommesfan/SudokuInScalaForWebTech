@@ -29,11 +29,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok(views.html.about())
   }
 
-  def no_inject(): Action[AnyContent] = {
-    c.solve(new DoNoInjectEvent)
-    phase10
-  }
-
   def post_switch_cards = Action { request =>
     val mode = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("mode").get.toString()
     val index = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("index").get.toString().toInt
@@ -64,22 +59,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok("")
   }
 
-  def inject(inject_to: String, card_index: String): Action[AnyContent] = {
-    if(inject_to.nonEmpty && card_index.nonEmpty) {
-      val inject_to_split = inject_to.split("_")
+  def post_no_inject = Action {
+    c.solve(new DoNoInjectEvent)
+    Ok("")
+  }
 
-      def receiving_player = inject_to_split(0)
-      def stashIndex = inject_to_split(1)
-      def position = inject_to_split(2)
+  def post_inject = Action { request =>
 
-      def stash_index =
-        if (position == "FRONT") Utils.INJECT_TO_FRONT
-        else if (position == "AFTER") Utils.INJECT_AFTER
-        else 0
-
-      c.solve(new DoInjectEvent(receiving_player.toInt, card_index.toInt, stashIndex.toInt, stash_index))
-    }
-    phase10
+    Ok("")
   }
 
   def reset(): Action[AnyContent] = {

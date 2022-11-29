@@ -8,11 +8,13 @@ GET     /                           controllers.Phase10WebController.phase10
 
 GET     /help                       controllers.Phase10WebController.help
 
-GET     /about                       controllers.Phase10WebController.about
+GET     /about                      controllers.Phase10WebController.about
 
-GET     /no_inject                  controllers.Phase10WebController.no_inject()
++nocsrf
+POST    /post_no_inject             controllers.Phase10WebController.post_no_inject()
 
-GET     /inject                     controllers.Phase10WebController.inject(inject_to?="", card_index?="")
++nocsrf
+POST    /post_inject                controllers.Phase10WebController.post_inject()
 
 +nocsrf
 POST    /post_switch_cards          controllers.Phase10WebController.post_switch_cards()
