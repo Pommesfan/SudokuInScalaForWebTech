@@ -6,19 +6,9 @@
 
 GET     /                           controllers.Phase10WebController.phase10
 
-GET     /set_players                controllers.Phase10WebController.set_players(p1?="", p2?="", p3?="", p4?="")
-
 GET     /help                       controllers.Phase10WebController.help
 
 GET     /about                       controllers.Phase10WebController.about
-
-GET     /new_card/                  controllers.Phase10WebController.new_card(card_index?="")
-
-GET     /open_card/                 controllers.Phase10WebController.open_card(card_index?="")
-
-GET     /no_discard                 controllers.Phase10WebController.no_discard()
-
-GET     /discard                    controllers.Phase10WebController.discard(card_indices?="")
 
 GET     /no_inject                  controllers.Phase10WebController.no_inject()
 
@@ -26,6 +16,15 @@ GET     /inject                     controllers.Phase10WebController.inject(inje
 
 +nocsrf
 POST    /post_switch_cards          controllers.Phase10WebController.post_switch_cards()
+
++nocsrf
+POST    /post_set_players           controllers.Phase10WebController.post_set_players()
+
++nocsrf
+POST    /post_discard               controllers.Phase10WebController.post_discard()
+
++nocsrf
+POST    /post_no_discard            controllers.Phase10WebController.post_no_discard()
 
 GET     /reset                      controllers.Phase10WebController.reset()
 

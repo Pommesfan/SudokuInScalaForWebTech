@@ -1,7 +1,7 @@
 package controllers
 
 import model.{RoundData, TurnData}
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, JsString}
 
 import javax.inject._
 import play.api.mvc._
@@ -29,54 +29,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok(views.html.about())
   }
 
-  def set_players(p1:String, p2:String, p3:String, p4:String) = {
-    def make_list(): List[String] = {
-      var l = List[String]()
-      if (!(p1.isEmpty || p2.isEmpty)) {
-        l = p1 :: l
-        l = p2 :: l
-        if (p3.isEmpty) {
-          return l
-        }
-        l = p3 :: l
-        if (p4.isEmpty) {
-          return l
-        }
-        l = p4 :: l
-      }
-      l
-    }
-
-    c.solve(new DoCreatePlayerEvent(make_list().reverse))
-    phase10
-  }
-
-  def new_card(idx: String): Action[AnyContent] = {
-    if(idx.nonEmpty) {
-      c.solve(new DoSwitchCardEvent(idx.toInt, Utils.NEW_CARD))
-    }
-    phase10
-  }
-
-  def open_card(idx: String): Action[AnyContent] = {
-    if (idx.nonEmpty) {
-      c.solve(new DoSwitchCardEvent(idx.toInt, Utils.OPENCARD))
-    }
-    phase10
-  }
-
-  def no_discard(): Action[AnyContent] = {
-    c.solve(new DoNoDiscardEvent)
-    phase10
-  }
-
-  def discard(indices: String): Action[AnyContent] = {
-    if(indices.nonEmpty) {
-      c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(indices)))
-    }
-    phase10
-  }
-
   def no_inject(): Action[AnyContent] = {
     c.solve(new DoNoInjectEvent)
     phase10
@@ -87,6 +39,28 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     val index = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("index").get.toString().toInt
     def mode_to_Int = if(mode == "\"new\"") Utils.NEW_CARD else if(mode == "\"open\"") Utils.OPENCARD else -1
     c.solve(new DoSwitchCardEvent(index, mode_to_Int))
+    Ok("")
+  }
+
+  def post_set_players = Action { request =>
+    val length = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("length").get.toString().toInt
+    val names = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("names").get.result
+    var l = List[String]()
+    for(i <- 0 until length) {
+      l = l :+ names(i).asInstanceOf[JsString].value
+    }
+    c.solve(new DoCreatePlayerEvent(l))
+    Ok("")
+  }
+
+  def post_discard = Action { request =>
+    val cards = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("cards").get
+    c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(cards.asInstanceOf[JsString].value)))
+    Ok("")
+  }
+
+  def post_no_discard = Action {
+    c.solve(new DoNoDiscardEvent)
     Ok("")
   }
 

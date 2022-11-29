@@ -1,4 +1,15 @@
-function switch_card(mode, index) {
+function switch_card(mode) {
+    let index = -1
+    for(let i = 0; i < 10; i++) {
+        let radioButton = document.getElementById("selected_player_card_" + i)
+        if(radioButton.checked) {
+            index = i
+            break
+        }
+    }
+    if (index < 0) {
+        return
+    }
     fetch('/post_switch_cards', {
         method: 'POST',
         headers: {
@@ -6,15 +17,15 @@ function switch_card(mode, index) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ "mode": mode, "index": index })
-    })
+    }).then(response => document.location.reload())
 }
 
 function new_card() {
-    switch_card("new", 4)
+    switch_card("new")
 }
 
 function open_card() {
-    switch_card("open", 4)
+    switch_card("open")
 }
 
 document.getElementById("btn_new_card").onclick = new_card

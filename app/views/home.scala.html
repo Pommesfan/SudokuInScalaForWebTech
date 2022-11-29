@@ -24,8 +24,7 @@
             </div>
             @* </div>*@
             <div class="col-lg-2">
-            <div class="name">
-                <form action="/set_players">
+                <div class="name">
                     <div class="p1">
                     <label for="p1">Player 1:</label>
                     <br>
@@ -35,23 +34,22 @@
                     <div class="p2">
                     <label for="p2">Player 2:</label>
                     <br>
-                    <input type="text" id="p1" name="p2" value="">
+                    <input type="text" id="p2" name="p2" value="">
 
                     </div>
                     <div class="p3">
                     <label for="p3">Player 3:</label>
                     <br>
-                    <input type="text" id="p1" name="p3" value="">
+                    <input type="text" id="p3" name="p3" value="">
 
                     </div>
                     <div class="p4">
                     <label for="p4">Player 4:</label>
                     <br>
-                    <input type="text" id="p1" name="p4" value="">
+                    <input type="text" id="p4" name="p4" value="">
                     </div>
-                    <input type="submit" class="btn btn-primary" value="Starten">
-                </form>
-            </div>
+                    <button id="submit_player_names" type="submit" class="btn btn-primary">Starten</button>
+                </div>
             </div>
             </div>
             </div>
@@ -66,4 +64,5 @@
         </ul>
 
     </body>
+    <script src="@routes.Assets.versioned("/javascripts/home.js")" type="text/javascript"></script>
 </html>

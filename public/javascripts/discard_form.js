@@ -18,6 +18,25 @@ function discard_form() {
     }
     //remove the separators at the and which are created in every iteration
     values = values.slice(0, values.length - 2)
-    document.getElementById("submit_discard").value = values
+    fetch('/post_discard', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"cards": values})
+    }).then(response => document.location.reload())
+}
+
+function no_discard() {
+    fetch('/post_no_discard', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    }).then(response => document.location.reload())
 }
 document.getElementById("submit_discard").onclick = discard_form
+document.getElementById("no_discard").onclick = no_discard
