@@ -65,7 +65,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
   }
 
   def post_inject = Action { request =>
-
+    val card_to_inject = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("card_to_inject").get.toString().toInt
+    val player_to = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("player_to").get.toString().toInt
+    val group_to = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("group_to").get.toString().toInt
+    val position_to = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("position_to").get.toString()
+    def position_to_Int = if(position_to == "\"FRONT\"") Utils.INJECT_TO_FRONT else if(position_to == "\"AFTER\"") Utils.INJECT_AFTER else -1
+    c.solve(new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int))
     Ok("")
   }
 
