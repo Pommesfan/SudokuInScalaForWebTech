@@ -9,7 +9,7 @@ function submit_player_names() {
     if(names.length < 2) {
         alert("Mindestens zwei Spieler eingeben")
     } else {
-        fetch('/post_set_players', {
+        fetch('/set_players', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',

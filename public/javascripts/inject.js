@@ -5,7 +5,7 @@ function inject() {
     let group_to = parseInt(target[1])
     let position_to = target[2]
 
-    fetch('/post_inject', {
+    fetch('/inject', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -21,7 +21,7 @@ function inject() {
 }
 
 function no_inject() {
-    fetch('/post_no_inject', {
+    fetch('/no_inject', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',

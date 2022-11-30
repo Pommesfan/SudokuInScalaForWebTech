@@ -29,7 +29,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok(views.html.about())
   }
 
-  def post_switch_cards = Action { request =>
+  def switch_cards = Action { request =>
     val mode = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("mode").get.toString()
     val index = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("index").get.toString().toInt
     def mode_to_Int = if(mode == "\"new\"") Utils.NEW_CARD else if(mode == "\"open\"") Utils.OPENCARD else -1
@@ -37,7 +37,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok("")
   }
 
-  def post_set_players = Action { request =>
+  def set_players = Action { request =>
     val length = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("length").get.toString().toInt
     val names = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("names").get.result
     var l = List[String]()
@@ -48,23 +48,23 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     Ok("")
   }
 
-  def post_discard = Action { request =>
+  def discard = Action { request =>
     val cards = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("cards").get
     c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(cards.asInstanceOf[JsString].value)))
     Ok("")
   }
 
-  def post_no_discard = Action {
+  def no_discard = Action {
     c.solve(new DoNoDiscardEvent)
     Ok("")
   }
 
-  def post_no_inject = Action {
+  def no_inject = Action {
     c.solve(new DoNoInjectEvent)
     Ok("")
   }
 
-  def post_inject = Action { request =>
+  def inject = Action { request =>
     val card_to_inject = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("card_to_inject").get.toString().toInt
     val player_to = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("player_to").get.toString().toInt
     val group_to = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("group_to").get.toString().toInt

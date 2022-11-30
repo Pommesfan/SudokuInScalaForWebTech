@@ -18,7 +18,7 @@ function discard_form() {
     }
     //remove the separators at the and which are created in every iteration
     values = values.slice(0, values.length - 2)
-    fetch('/post_discard', {
+    fetch('/discard', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -29,7 +29,7 @@ function discard_form() {
 }
 
 function no_discard() {
-    fetch('/post_no_discard', {
+    fetch('/no_discard', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',

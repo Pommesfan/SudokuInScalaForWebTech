@@ -1,22 +1,12 @@
 function switch_card(mode) {
-    let index = -1
-    for(let i = 0; i < 10; i++) {
-        let radioButton = document.getElementById("selected_player_card_" + i)
-        if(radioButton.checked) {
-            index = i
-            break
-        }
-    }
-    if (index < 0) {
-        return
-    }
-    fetch('/post_switch_cards', {
+    let card_index = parseInt(document.querySelector('input[name="card_index"]:checked').value)
+    fetch('/switch_cards', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ "mode": mode, "index": index })
+        body: JSON.stringify({ "mode": mode, "index": card_index})
     }).then(response => document.location.reload())
 }
 
