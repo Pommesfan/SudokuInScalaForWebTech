@@ -1,13 +1,6 @@
 function switch_card(mode) {
     let card_index = parseInt(document.querySelector('input[name="card_index"]:checked').value)
-    fetch('/switch_cards', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ "mode": mode, "index": card_index})
-    }).then(response => document.location.reload())
+    post_data('/switch_cards', { "mode": mode, "index": card_index})
 }
 
 function new_card() {

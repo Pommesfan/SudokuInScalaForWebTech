@@ -5,30 +5,16 @@ function inject() {
     let group_to = parseInt(target[1])
     let position_to = target[2]
 
-    fetch('/inject', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "card_to_inject": card_to_inject,
-            "player_to": player_to,
-            "group_to": group_to,
-            "position_to": position_to
-        })
-    }).then(response => document.location.reload())
+    post_data('/inject', {
+        "card_to_inject": card_to_inject,
+        "player_to": player_to,
+        "group_to": group_to,
+        "position_to": position_to
+    })
 }
 
 function no_inject() {
-    fetch('/no_inject', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
-    }).then(response => document.location.reload())
+    post_data('/no_inject', {})
 }
 
 document.getElementById("btn_inject").onclick = inject
