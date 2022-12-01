@@ -147,6 +147,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
           "numberofPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase())).toSeq),
           "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
           "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
+          "activePlayer" -> JsNumber(t.current_player),
           "newCard" -> cardToJSon(e.newCard),
           "openCard" -> cardToJSon(t.openCard)
         ))
