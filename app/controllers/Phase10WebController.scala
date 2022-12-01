@@ -1,7 +1,7 @@
 package controllers
 
-import model.{RoundData, TurnData}
-import play.api.libs.json.{JsObject, JsString}
+import model.{Card, RoundData, TurnData}
+import play.api.libs.json.{JsArray, JsNull, JsNumber, JsObject, JsString}
 
 import javax.inject._
 import play.api.mvc._
@@ -34,7 +34,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     val index = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("index").get.toString().toInt
     def mode_to_Int = if(mode == "\"new\"") Utils.NEW_CARD else if(mode == "\"open\"") Utils.OPENCARD else -1
     c.solve(new DoSwitchCardEvent(index, mode_to_Int))
-    Ok("")
+    Ok(get_post_response())
   }
 
   def set_players = Action { request =>
@@ -45,23 +45,23 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       l = l :+ names(i).asInstanceOf[JsString].value
     }
     c.solve(new DoCreatePlayerEvent(l))
-    Ok("")
+    Ok(get_post_response())
   }
 
   def discard = Action { request =>
     val cards = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("cards").get
     c.solve(new DoDiscardEvent(Utils.makeGroupedIndexList(cards.asInstanceOf[JsString].value)))
-    Ok("")
+    Ok(get_post_response())
   }
 
   def no_discard = Action {
     c.solve(new DoNoDiscardEvent)
-    Ok("")
+    Ok(get_post_response())
   }
 
   def no_inject = Action {
     c.solve(new DoNoInjectEvent)
-    Ok("")
+    Ok(get_post_response())
   }
 
   def inject = Action { request =>
@@ -71,7 +71,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     val position_to = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("position_to").get.toString()
     def position_to_Int = if(position_to == "\"FRONT\"") Utils.INJECT_TO_FRONT else if(position_to == "\"AFTER\"") Utils.INJECT_AFTER else -1
     c.solve(new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int))
-    Ok("")
+    Ok(get_post_response())
   }
 
   def reset(): Action[AnyContent] = {
@@ -127,4 +127,81 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
       Ok(views.html.game(discardedCards, player_status, get_input_panel(), alert_new_round))
     }
   }
+
+  def get_post_response(): JsObject = {
+    val g = c.getGameData
+    val r = g._1
+    val t = g._2
+    lastEvent match {
+      case e: GameStartedEvent => {
+        val players = c.getPlayers()
+        JsObject(Seq(
+          "event" -> JsString("GameStartedEvent"),
+          "players" -> JsArray(players.map(p => JsString(p))),
+          cardStashCurrentPlayer(t)
+        ))
+      }
+      case e: NewRoundEvent => {
+        JsObject(Seq(
+          "event" -> JsString("NewRoundEvent"),
+          "numberofPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase())).toSeq),
+          "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
+          "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
+          "newCard" -> cardToJSon(e.newCard),
+          "openCard" -> cardToJSon(t.openCard)
+        ))
+      }
+      case e: TurnEndedEvent => {
+        JsObject(Seq(
+          "event" -> JsString("TurnEndedEvent"),
+          "activePlayer" -> JsNumber(t.current_player),
+          "newCard" -> cardToJSon(e.newCard),
+          "openCard" -> cardToJSon(t.openCard),
+          cardStashCurrentPlayer(t),
+          discardedStash(t)
+        ))
+      }
+      case _: GoToDiscardEvent => {
+        JsObject(Seq(
+          "event" -> JsString("GoToDiscardEvent"),
+          cardStashCurrentPlayer(t),
+          cardStashCurrentPlayer(t),
+        ))
+      }
+      case _: GoToInjectEvent => {
+        JsObject(Seq(
+          "event" -> JsString("GoToInjectEvent"),
+          cardStashCurrentPlayer(t),
+          discardedStash(t)
+        ))
+      }
+      case _ => JsObject(Seq("" -> JsString("")))
+    }
+  }
+
+  private def discardedStash(t:TurnData): (String, JsArray) = {
+    "discardedStash" -> JsArray(
+      t.discardedCardDeck.cards.map(o =>
+        if (o.nonEmpty)
+          JsArray(o.get.map(cs =>
+            JsArray(cs.map(c =>
+              cardToJSon(c)
+            ))
+          ))
+        else
+          JsNull
+      )
+    )
+  }
+
+  private def cardStashCurrentPlayer(t: TurnData): (String, JsArray) = {
+    "cardStash" -> JsArray(
+        t.playerCardDeck.cards(t.current_player).map(c => cardToJSon(c))
+    )
+  }
+
+  private def cardToJSon(c: Card) = JsObject(Seq(
+    "color" -> JsNumber(c.color),
+    "value" -> JsNumber(c.value)
+  ))
 }
