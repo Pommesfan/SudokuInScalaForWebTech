@@ -30,5 +30,7 @@ POST    /no_discard                 controllers.Phase10WebController.no_discard(
 
 GET     /reset                      controllers.Phase10WebController.reset()
 
+GET     /websocket                  controllers.Phase10WebController.socket
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

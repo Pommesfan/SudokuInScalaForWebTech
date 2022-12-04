@@ -7,9 +7,15 @@ import javax.inject._
 import play.api.mvc._
 import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, ProgramStartedEvent, TurnEndedEvent, Utils}
 import views.TUI
+import play.api.libs.streams.ActorFlow
+import akka.actor.ActorSystem
+import akka.stream.Materializer
+import akka.actor._
+
+
 
 @Singleton
-class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractController(cc) with Observer {
+class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)  extends AbstractController(cc) with Observer {
   private var lastEvent: OutputEvent = new ProgramStartedEvent
   var c = new Controller
   val tui = new TUI(c)
@@ -205,4 +211,29 @@ class Phase10WebController @Inject()(cc: ControllerComponents) extends AbstractC
     "color" -> JsNumber(c.color),
     "value" -> JsNumber(c.value)
   ))
+
+
+  def socket = WebSocket.accept[String, String] { request =>
+    ActorFlow.actorRef { out =>
+      println("Connect received")
+      MyWebSocketActor.props(out)
+    }
+  }
+
+  object MyWebSocketActor {
+    def props(out: ActorRef) = {
+      println("Object created")
+      Props(new MyWebSocketActor(out))
+    }
+  }
+
+  class MyWebSocketActor(out: ActorRef) extends Actor {
+    println("Class created")
+
+    def receive = {
+      case msg: String =>
+        out ! ("I received your message: " + msg)
+        println("Received message " + msg)
+    }
+  }
 }
