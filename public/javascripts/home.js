@@ -41,12 +41,15 @@ function connectWebSocket() {
     websocket.onmessage = function (e) {
         if (typeof e.data === "string") {
             console.log('String message received: ' + e.data);
+            alert('String message received: ' + e.data)
         }
         else if (e.data instanceof ArrayBuffer) {
             console.log('ArrayBuffer received: ' + e.data);
+            alert('ArrayBuffer received: ' + e.data)
         }
         else if (e.data instanceof Blob) {
             console.log('Blob received: ' + e.data);
+            alert('Blob received: ' + e.data)
         }
     };
 }
