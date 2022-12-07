@@ -35,17 +35,24 @@ function checkboxes(i, cardGroupSize, show_checkboxes) {
 
 function getFile(name) {
     let data = "";
-    jQuery.get("/assets/" + name).then(response => {
-        data = response
-    })
+    jQuery.ajax({
+        url: "/assets/" + name,
+        success: function (response) {
+            data = response
+        },
+        async: false
+    });
     return data
 }
 
-const switchCardForm = getFile("javascripts/utils.js")
+const switchCardForm = getFile("inputForms/switch_card_form.html")
+const discardForm = getFile("inputForms/discard_form.html")
+const injectForm = getFile("inputForms/inject_form.html")
 
 function update(data) {
     if (data['event'] == "GoToDiscardEvent") {
         document.getElementById("playerCards").innerHTML = show_player_cards(data['cardStash'], true)
+        document.getElementById("inputForm").innerHTML = discardForm
     } else {
         document.location.reload()
     }
