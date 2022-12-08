@@ -171,6 +171,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case _: GoToDiscardEvent => {
         JsObject(Seq(
           "event" -> JsString("GoToDiscardEvent"),
+          "card_group_size" -> JsNumber(r.validators(t.current_player).getNumberOfInputs().size),
           cardStashCurrentPlayer(t),
           cardStashCurrentPlayer(t),
         ))

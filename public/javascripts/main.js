@@ -3,7 +3,7 @@ if (alert_text != null) {
     alert(alert_text.innerText)
 }
 
-function show_player_cards(cards, show_checkboxes) {
+function show_player_cards(cards, show_checkboxes, cardGroupSize) {
     let html = ""
     for (let i = 0; i < cards.length; i++) {
         html += `
@@ -11,7 +11,7 @@ function show_player_cards(cards, show_checkboxes) {
                 <div class="col-7">
                     ${i}: ${cardToString(cards[i])}
                 </div>
-                ${checkboxes(i, 2, show_checkboxes)}
+                ${checkboxes(i, cardGroupSize, show_checkboxes)}
             </div>`
         html += "\n<br>\n"
     }
@@ -34,9 +34,13 @@ function checkboxes(i, cardGroupSize, show_checkboxes) {
     return html
 }
 
+function radio_buttons(i, show_radio_buttons) {
+
+}
+
 function update(data) {
     if (data['event'] == "GoToDiscardEvent") {
-        let new_html = show_player_cards(data['cardStash'], true)
+        let new_html = show_player_cards(data['cardStash'], true, data['card_group_size'])
         document.getElementById("playerCards").innerHTML = new_html
         document.getElementById("inputFormSwitch").hidden = true
         document.getElementById("inputFormDiscard").hidden = false
