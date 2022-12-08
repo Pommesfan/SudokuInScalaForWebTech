@@ -51,7 +51,7 @@ function radio_buttons_player_cards(i, show_radio_buttons) {
 function discarded_cards(cardStashes, show_radio_buttons) {
     let html = ""
     for (let i = 0; i < cardStashes.length; i++) {
-        html += i + `<br>`
+        html += i + `:<br>`
         let cardGroups = cardStashes[i]
         if (cardGroups == null) {
             html += `Keine Karten<br>` + "\n"
@@ -59,13 +59,13 @@ function discarded_cards(cardStashes, show_radio_buttons) {
             for(let j = 0; j < cardGroups.length; j++) {
                 let cards = cardGroups[j]
                 if (show_radio_buttons) {
-                    html += `<input type="radio" name="inject_to" value=${i.toString + "_" + j + "_FRONT"}>` + "<br>\n"
+                    html += `<input type="radio" name="inject_to" value=${i + "_" + j + "_FRONT"}>` + "<br>\n"
                 }
                 cards.forEach(c =>
                     html += cardToString(c) + "<br>\n"
                 )
                 if (show_radio_buttons) {
-                    html += `<input type="radio" name="inject_to" value=${i.toString + "_" + j + "_AFTER"}>` + "\n"
+                    html += `<input type="radio" name="inject_to" value=${i + "_" + j + "_AFTER"}>` + "\n"
                 }
                 html += `<br>`
             }
@@ -74,12 +74,13 @@ function discarded_cards(cardStashes, show_radio_buttons) {
     return html
 }
 function update(data) {
-    if (data['event'] == "GoToDiscardEvent") {
+    let event = data['event']
+    if (event == "GoToDiscardEvent") {
         let new_html = show_player_cards(data['cardStash'], true, false, data['card_group_size'])
         document.getElementById("playerCards").innerHTML = new_html
         document.getElementById("inputFormSwitch").hidden = true
         document.getElementById("inputFormDiscard").hidden = false
-    } else if(data['event'] == "NewRoundEvent" || data['event'] == "TurnEndedEvent") {
+    } else if(event == "NewRoundEvent" || data['event'] == "TurnEndedEvent") {
         let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
         let new_discarded_cards = discarded_cards(data['discardedStash'], false)
         document.getElementById("playerCards").innerHTML = new_player_cards
@@ -90,6 +91,13 @@ function update(data) {
         document.getElementById("inputFormSwitch").hidden = false
         document.getElementById("inputFormDiscard").hidden = true
         document.getElementById("inputFormInject").hidden = true
+    } else if (event == "GoToInjectEvent") {
+        document.getElementById("inputFormSwitch").hidden = true
+        document.getElementById("inputFormInject").hidden = false
+        let new_player_cards = show_player_cards(data['cardStash'], false, true, 0)
+        let new_discarded_cards = discarded_cards(data['discardedStash'], true)
+        document.getElementById("playerCards").innerHTML = new_player_cards
+        document.getElementById("discardedCards").innerHTML = new_discarded_cards
     } else {
         document.location.reload()
     }

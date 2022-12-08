@@ -156,6 +156,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
           "activePlayer" -> JsNumber(t.current_player),
           "newCard" -> cardToJSon(e.newCard),
           "openCard" -> cardToJSon(t.openCard),
+          cardStashCurrentPlayer(t),
           discardedStash(t)
         ))
       }
