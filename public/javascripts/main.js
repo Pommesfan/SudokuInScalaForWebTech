@@ -3,7 +3,7 @@ if (alert_text != null) {
     alert(alert_text.innerText)
 }
 
-function show_player_cards(cards, show_checkboxes, cardGroupSize) {
+function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
     let html = ""
     for (let i = 0; i < cards.length; i++) {
         html += `
@@ -12,6 +12,7 @@ function show_player_cards(cards, show_checkboxes, cardGroupSize) {
                     ${i}: ${cardToString(cards[i])}
                 </div>
                 ${checkboxes(i, cardGroupSize, show_checkboxes)}
+                ${radio_buttons(i, show_radio_buttons)}
             </div>`
         html += "\n<br>\n"
     }
@@ -35,12 +36,21 @@ function checkboxes(i, cardGroupSize, show_checkboxes) {
 }
 
 function radio_buttons(i, show_radio_buttons) {
-
+    let html = ""
+    if (show_radio_buttons) {
+        html += `
+            <div class="col-1">
+                <div class="form-check form-check-inline">
+                    <input id=${"selected_player_card_" + i.toString} class="form-check-input" type="radio" name="card_index" value=@i.toString>
+                </div>
+            </div>`
+    }
+    return html + "\n"
 }
 
 function update(data) {
     if (data['event'] == "GoToDiscardEvent") {
-        let new_html = show_player_cards(data['cardStash'], true, data['card_group_size'])
+        let new_html = show_player_cards(data['cardStash'], true, false, data['card_group_size'])
         document.getElementById("playerCards").innerHTML = new_html
         document.getElementById("inputFormSwitch").hidden = true
         document.getElementById("inputFormDiscard").hidden = false
