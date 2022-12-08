@@ -6,13 +6,13 @@
 @radioButtons = @{newTurn || e.isInstanceOf[GoToInjectEvent]}
 @checkboxen = @{e.isInstanceOf[GoToDiscardEvent]}
 <div>
-    Aktueller Spieler: @current_player<br><br>
+    Aktueller Spieler: <p id="currentPlayer">@current_player</p><br>
     @if(!newCard.isEmpty){
         Neue Karte:<br>
-        @newCard.get.toString<br>
+        <p id="newCard">@newCard.get.toString</p><br>
     }
     Offenliegende Karte:<br>
-    @openCard.toString<br><br>
+        <p id="openCard">@openCard.toString</p><br>
     Karten des Spielers:<br><br>
     <div id="playerCards">
     @for(i <- 0 until cardStash.size) {

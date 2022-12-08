@@ -155,7 +155,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
           "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
           "activePlayer" -> JsNumber(t.current_player),
           "newCard" -> cardToJSon(e.newCard),
-          "openCard" -> cardToJSon(t.openCard)
+          "openCard" -> cardToJSon(t.openCard),
+          discardedStash(t)
         ))
       }
       case e: TurnEndedEvent => {
