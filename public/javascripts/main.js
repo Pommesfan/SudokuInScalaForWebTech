@@ -7,12 +7,13 @@ function show_player_cards(cards, show_checkboxes) {
     let html = ""
     for (let i = 0; i < cards.length; i++) {
         html += `
-            <div className="row">
-                <div className="col-7">
+            <div class="row">
+                <div class="col-7">
                     ${i}: ${cardToString(cards[i])}
                 </div>
                 ${checkboxes(i, 2, show_checkboxes)}
             </div>`
+        html += "\n<br>\n"
     }
     return html
 }
@@ -35,7 +36,8 @@ function checkboxes(i, cardGroupSize, show_checkboxes) {
 
 function update(data) {
     if (data['event'] == "GoToDiscardEvent") {
-        document.getElementById("playerCards").innerHTML = show_player_cards(data['cardStash'], true)
+        let new_html = show_player_cards(data['cardStash'], true)
+        document.getElementById("playerCards").innerHTML = new_html
         document.getElementById("inputFormSwitch").hidden = true
         document.getElementById("inputFormDiscard").hidden = false
     } else {
