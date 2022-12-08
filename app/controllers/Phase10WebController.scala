@@ -86,11 +86,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   def get_input_panel() = lastEvent match {
-    case _: GameStartedEvent => views.html.switch_card_form.apply()
-    case _: NewRoundEvent => views.html.switch_card_form.apply()
-    case _: TurnEndedEvent => views.html.switch_card_form.apply()
-    case _: GoToDiscardEvent => views.html.discard_form.apply()
-    case _: GoToInjectEvent => views.html.inject_card_form.apply()
+    case _: GameStartedEvent => "switch_card"
+    case _: NewRoundEvent => "switch_card"
+    case _: TurnEndedEvent => "switch_card"
+    case _: GoToDiscardEvent => "discard"
+    case _: GoToInjectEvent => "inject"
   }
 
   def render_player_status(players:List[String], r:RoundData, t:TurnData) = {

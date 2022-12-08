@@ -33,26 +33,11 @@ function checkboxes(i, cardGroupSize, show_checkboxes) {
     return html
 }
 
-function getFile(name) {
-    let data = "";
-    jQuery.ajax({
-        url: "/assets/" + name,
-        success: function (response) {
-            data = response
-        },
-        async: false
-    });
-    return data
-}
-
-const switchCardForm = getFile("inputForms/switch_card_form.html")
-const discardForm = getFile("inputForms/discard_form.html")
-const injectForm = getFile("inputForms/inject_form.html")
-
 function update(data) {
     if (data['event'] == "GoToDiscardEvent") {
         document.getElementById("playerCards").innerHTML = show_player_cards(data['cardStash'], true)
-        document.getElementById("inputForm").innerHTML = discardForm
+        document.getElementById("inputFormSwitch").hidden = true
+        document.getElementById("inputFormDiscard").hidden = false
     } else {
         document.location.reload()
     }

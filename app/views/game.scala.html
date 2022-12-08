@@ -1,4 +1,4 @@
-@(discarded_cards: Html, player_status: Html, input_form: Html, alert_text: Option[String])
+@(discarded_cards: Html, player_status: Html, input_form: String, alert_text: Option[String])
 
 <html lang="en">
     <head>
@@ -54,8 +54,19 @@
                 </div>
                 <div class="row">
                     <div class="col-xl-6">
-                        <div id="inputForm">
-                            @input_form
+                        <div id="inputFormSwitch" @{if(input_form != "switch_card") "hidden"}>
+                            <label>Karte tauschen:</label><br>
+                            <input type="submit" id="btn_new_card" class="btn btn-success" value="Neue Karte">
+                            <input type="submit" id="btn_open_card" class="btn btn-success" value="Offenliegende Karte">
+                        </div>
+                        <div id="inputFormDiscard" @{if(input_form != "discard") "hidden"}>
+                            <button type="submit" id="submit_discard" formaction="/discard" class="btn btn-success">Ablegen</button>
+                            <button type="submit" id="no_discard" class="btn btn-secondary">Nicht ablegen</button>
+                        </div>
+                        <div id="inputFormInject" @{if(input_form != "inject") "hidden"}>
+                            <label>Karte anlegen:</label><br>
+                            <input type="submit" id="btn_inject" class="btn btn-success" value="Anlegen">
+                            <input type="submit" id="btn_no_inject" class="btn btn-secondary" value="Nicht anlegen">
                         </div>
                         <br>
 
@@ -92,4 +103,7 @@
     <script src="@routes.Assets.versioned("/javascripts/jquery.min.js")"></script>
     <script src="@routes.Assets.versioned("/javascripts/utils.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("/javascripts/main.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.versioned("/javascripts/discard_form.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.versioned("/javascripts/inject.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.versioned("/javascripts/switch_card_form.js")" type="text/javascript"></script>
 </html>
