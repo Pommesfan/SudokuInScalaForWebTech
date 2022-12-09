@@ -1,4 +1,4 @@
 [ ] Reset Button -> Macht einen Adresszusatz -> Spiel starten geht nicht - Rebecca
-[ ] Nach Spielstand Webseite aktualisieren mit Javascript - Johannes
+[x] Nach Spielstand Webseite aktualisieren mit Javascript - Johannes
 [ ] Nachricht mit Websocket an andere Web-Clients - Johannes
 [ ] Vue anschauen - Rebecca
