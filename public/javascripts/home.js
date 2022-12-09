@@ -11,6 +11,10 @@ function submit_player_names() {
             names.push(name)
         }
     }
+    for(let i = 0; i < names.length; i++) {
+        sessionStorage.setItem("player_" + i, names[i])
+    }
+    sessionStorage.setItem("number_of_players", names.length)
     if(names.length < 2) {
         alert("Mindestens zwei Spieler eingeben")
     } else {

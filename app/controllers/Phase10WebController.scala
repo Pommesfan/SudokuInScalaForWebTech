@@ -150,8 +150,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case e: NewRoundEvent => {
         JsObject(Seq(
           "event" -> JsString("NewRoundEvent"),
-          "numberofPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase())).toSeq),
+          "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase())).toSeq),
           "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
+          "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
           "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
           "activePlayer" -> JsNumber(t.current_player),
           "newCard" -> cardToJSon(e.newCard),

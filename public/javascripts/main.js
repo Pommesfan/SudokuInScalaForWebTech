@@ -3,6 +3,10 @@ if (alert_text != null) {
     alert(alert_text.innerText)
 }
 
+function get_player_name(idx) {
+    return sessionStorage.getItem("player_" + idx)
+}
+
 function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
     let html = ""
     for (let i = 0; i < cards.length; i++) {
@@ -51,7 +55,7 @@ function radio_buttons_player_cards(i, show_radio_buttons) {
 function discarded_cards(cardStashes, show_radio_buttons) {
     let html = ""
     for (let i = 0; i < cardStashes.length; i++) {
-        html += i + `:<br>`
+        html += get_player_name(i) + `:<br>`
         let cardGroups = cardStashes[i]
         if (cardGroups == null) {
             html += `Keine Karten<br>` + "\n"
@@ -73,6 +77,18 @@ function discarded_cards(cardStashes, show_radio_buttons) {
     }
     return html
 }
+
+function new_round_message(data) {
+    let s = "Neue Runde:"
+    const errorPoints = data['errorPoints']
+    const number_of_phase = data['numberOfPhase']
+    const phase_description = data['phaseDescription']
+    for(let i = 0; i < sessionStorage.getItem("number_of_players"); i++) {
+        s += ("\n" + get_player_name(i) + ": " + errorPoints[i] + " Fehlerpunkte; Phase: " + number_of_phase[i] + ": " + phase_description[i])
+    }
+    return s
+}
+
 function update(data) {
     let event = data['event']
     if (event == "GoToDiscardEvent") {
@@ -87,7 +103,7 @@ function update(data) {
         document.getElementById("discardedCards").innerHTML = new_discarded_cards
         document.getElementById("newCard").innerHTML = cardToString(data['newCard'])
         document.getElementById("openCard").innerHTML = cardToString(data['openCard'])
-        document.getElementById("currentPlayer").innerHTML = data['activePlayer']
+        document.getElementById("currentPlayer").innerHTML = get_player_name(data['activePlayer'])
         document.getElementById("inputFormSwitch").hidden = false
         document.getElementById("inputFormDiscard").hidden = true
         document.getElementById("inputFormInject").hidden = true
@@ -100,5 +116,8 @@ function update(data) {
         document.getElementById("discardedCards").innerHTML = new_discarded_cards
     } else {
         document.location.reload()
+    }
+    if (event=="NewRoundEvent") {
+        alert(new_round_message(data))
     }
 }
