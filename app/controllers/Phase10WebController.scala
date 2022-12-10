@@ -135,6 +135,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   def get_post_response(): JsObject = {
+    for (r <- webSocketReactors) {
+      r.publish("Spielstand geändert")
+    }
     val g = c.getGameData
     val r = g._1
     val t = g._2
@@ -231,13 +234,26 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
+  var webSocketReactors = List[WebSocketReactor]()
+  abstract class WebSocketReactor() {
+    def publish(msg: String)
+  }
+
   class MyWebSocketActor(out: ActorRef) extends Actor {
     println("Class created")
+    webSocketReactors = webSocketReactors :+ new WebSocketReactor {
+      override def publish(msg: String): Unit = sendJsonToClient(msg)
+    }
 
     def receive = {
       case msg: String =>
         out ! ("I received your message: " + msg)
         println("Received message " + msg)
+    }
+
+    def sendJsonToClient(msg: String) = {
+      println("Received event from Controller")
+      out ! (msg)
     }
   }
 }
