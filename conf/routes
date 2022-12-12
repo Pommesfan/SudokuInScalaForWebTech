@@ -4,7 +4,9 @@
 
 # Controller for Sudoku
 
-GET     /                           controllers.Phase10WebController.phase10
+GET     /                           controllers.Phase10WebController.home()
+
+GET     /game                       controllers.Phase10WebController.phase10
 
 GET     /help                       controllers.Phase10WebController.help
 

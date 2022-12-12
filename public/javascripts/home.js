@@ -18,7 +18,7 @@ function submit_player_names() {
 }
 
 function update(data) {
-    document.location.reload()
+    document.location.replace("/game")
 }
 
 document.getElementById("submit_player_names").onclick = submit_player_names

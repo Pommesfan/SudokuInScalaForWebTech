@@ -35,6 +35,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     Ok(views.html.about())
   }
 
+  def home() = Action {
+    Ok(views.html.home())
+  }
+
+  def phase10 = Action {
+    Ok(views.html.game())
+  }
+
   def get_game_state() = Action { request =>
     Ok(get_post_response())
   }
@@ -87,15 +95,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   def reset(): Action[AnyContent] = {
     c = new Controller
     phase10
-  }
-
-  def phase10 = Action {
-    def state = c.getState
-    if (state.isInstanceOf[InitialState]) {
-      Ok(views.html.home())
-    } else {
-      Ok(views.html.game())
-    }
   }
 
   def get_post_response(): JsObject = {
