@@ -1,14 +1,9 @@
-@(discarded_cards: Html, player_status: Html, input_form: String, alert_text: Option[String])
-
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>Phase 10 Playing-Site</title>
         <link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/game.css")' />
         <link href="@routes.Assets.versioned("stylesheets/bootstrap.min.css")" rel="stylesheet">
-        @if(alert_text.nonEmpty) {
-            <p hidden id="hidden_text_alert">@alert_text.get</p>
-        }
     </head>
     <body>
         <div>
@@ -45,25 +40,35 @@
                 <div class="row">
                     <form id="cardstash">
                         <div class="col w-50">
-                        @discarded_cards
+                            <div id="discardedCards">
+                            </div>
                         </div>
                         <div class="col w-50">
-                        @player_status
+                            <div>
+                                Aktueller Spieler: <p id="currentPlayer"></p><br>
+                                Neue Karte:<br>
+                                <p id="newCard"></p><br>
+                                Offenliegende Karte:<br>
+                                <p id="openCard"></p><br>
+                                Karten des Spielers:<br><br>
+                                <div id="playerCards">
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="row">
                     <div class="col-xl-6">
-                        <div id="inputFormSwitch" @{if(input_form != "switch_card") "hidden"}>
+                        <div id="inputFormSwitch" hidden>
                             <label>Karte tauschen:</label><br>
                             <input type="submit" id="btn_new_card" class="btn btn-success" value="Neue Karte">
                             <input type="submit" id="btn_open_card" class="btn btn-success" value="Offenliegende Karte">
                         </div>
-                        <div id="inputFormDiscard" @{if(input_form != "discard") "hidden"}>
+                        <div id="inputFormDiscard" hidden>
                             <button type="submit" id="submit_discard" formaction="/discard" class="btn btn-success">Ablegen</button>
                             <button type="submit" id="no_discard" class="btn btn-secondary">Nicht ablegen</button>
                         </div>
-                        <div id="inputFormInject" @{if(input_form != "inject") "hidden"}>
+                        <div id="inputFormInject" hidden>
                             <label>Karte anlegen:</label><br>
                             <input type="submit" id="btn_inject" class="btn btn-success" value="Anlegen">
                             <input type="submit" id="btn_no_inject" class="btn btn-secondary" value="Nicht anlegen">
