@@ -94,36 +94,48 @@ function new_round_message(data) {
     return s
 }
 
+function turnEnded(data) {
+    let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
+    let new_discarded_cards = discarded_cards(data['discardedStash'], false)
+    document.getElementById("playerCards").innerHTML = new_player_cards
+    document.getElementById("discardedCards").innerHTML = new_discarded_cards
+    document.getElementById("newCard").innerHTML = cardToString(data['newCard'])
+    document.getElementById("openCard").innerHTML = cardToString(data['openCard'])
+    document.getElementById("currentPlayer").innerHTML = get_player_name(data['activePlayer'])
+    document.getElementById("inputFormSwitch").hidden = false
+    document.getElementById("inputFormDiscard").hidden = true
+    document.getElementById("inputFormInject").hidden = true
+}
+
+function goToDiscard(data) {
+    let new_html = show_player_cards(data['cardStash'], true, false, data['card_group_size'])
+    document.getElementById("playerCards").innerHTML = new_html
+    document.getElementById("inputFormSwitch").hidden = true
+    document.getElementById("inputFormDiscard").hidden = false
+}
+
+function goToInject(data) {
+    document.getElementById("inputFormSwitch").hidden = true
+    document.getElementById("inputFormInject").hidden = false
+    let new_player_cards = show_player_cards(data['cardStash'], false, true, 0)
+    let new_discarded_cards = discarded_cards(data['discardedStash'], true)
+    document.getElementById("playerCards").innerHTML = new_player_cards
+    document.getElementById("discardedCards").innerHTML = new_discarded_cards
+}
+
 function update(data) {
     let event = data['event']
     if (event == "GoToDiscardEvent") {
-        let new_html = show_player_cards(data['cardStash'], true, false, data['card_group_size'])
-        document.getElementById("playerCards").innerHTML = new_html
-        document.getElementById("inputFormSwitch").hidden = true
-        document.getElementById("inputFormDiscard").hidden = false
-    } else if(event == "NewRoundEvent" || data['event'] == "TurnEndedEvent") {
-        let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
-        let new_discarded_cards = discarded_cards(data['discardedStash'], false)
-        document.getElementById("playerCards").innerHTML = new_player_cards
-        document.getElementById("discardedCards").innerHTML = new_discarded_cards
-        document.getElementById("newCard").innerHTML = cardToString(data['newCard'])
-        document.getElementById("openCard").innerHTML = cardToString(data['openCard'])
-        document.getElementById("currentPlayer").innerHTML = get_player_name(data['activePlayer'])
-        document.getElementById("inputFormSwitch").hidden = false
-        document.getElementById("inputFormDiscard").hidden = true
-        document.getElementById("inputFormInject").hidden = true
+        goToDiscard(data)
+    } else if(event == "NewRoundEvent") {
+        turnEnded(data)
+        alert(new_round_message(data))
+    } else if(data['event'] == "TurnEndedEvent") {
+        turnEnded(data)
     } else if (event == "GoToInjectEvent") {
-        document.getElementById("inputFormSwitch").hidden = true
-        document.getElementById("inputFormInject").hidden = false
-        let new_player_cards = show_player_cards(data['cardStash'], false, true, 0)
-        let new_discarded_cards = discarded_cards(data['discardedStash'], true)
-        document.getElementById("playerCards").innerHTML = new_player_cards
-        document.getElementById("discardedCards").innerHTML = new_discarded_cards
+        goToInject(data)
     } else {
         document.location.reload()
-    }
-    if (event=="NewRoundEvent") {
-        alert(new_round_message(data))
     }
 }
 
