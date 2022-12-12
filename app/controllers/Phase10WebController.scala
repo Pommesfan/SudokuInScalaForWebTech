@@ -35,6 +35,18 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     Ok(views.html.about())
   }
 
+  def home() = Action {
+    Ok(views.html.home())
+  }
+
+  def phase10 = Action {
+    Ok(views.html.game())
+  }
+
+  def get_game_state() = Action { request =>
+    Ok(get_post_response())
+  }
+
   def switch_cards = Action { request =>
     val mode = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("mode").get.toString()
     val index = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value.get("index").get.toString().toInt
@@ -85,55 +97,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     phase10
   }
 
-  def get_input_panel() = lastEvent match {
-    case _: GameStartedEvent => "switch_card"
-    case _: NewRoundEvent => "switch_card"
-    case _: TurnEndedEvent => "switch_card"
-    case _: GoToDiscardEvent => "discard"
-    case _: GoToInjectEvent => "inject"
-  }
-
-  def render_player_status(players:List[String], r:RoundData, t:TurnData) = {
-    def current_player = t.current_player
-    def player_name = players(current_player)
-
-    def get_new_card = lastEvent match {
-      case e: GameStartedEvent => Some(e.newCard)
-      case e: NewRoundEvent => Some(e.newCard)
-      case e: TurnEndedEvent => Some(e.newCard)
-      case _ => None
-    }
-
-    def cardGroupSize = r.validators(current_player).getNumberOfInputs().size
-
-    views.html.player_status_view(player_name, t.openCard, get_new_card, t.playerCardDeck.cards(current_player), lastEvent, cardGroupSize)
-  }
-
-  def render_discarded_cards(players: List[String], r: RoundData, t: TurnData) = {
-    def cards = t.discardedCardDeck.cards
-    views.html.discarded_cards_view(players, cards, lastEvent)
-  }
-
-  def phase10 = Action {
-    def state = c.getState
-    if (state.isInstanceOf[InitialState]) {
-      Ok(views.html.home())
-    } else {
-      val gameRunningState = state.asInstanceOf[GameRunningControllerStateInterface]
-      def players = gameRunningState.players
-      def r = gameRunningState.r
-      def t = gameRunningState.t
-      def player_status = render_player_status(players, r, t)
-      def discardedCards = render_discarded_cards(players, r, t)
-      def alert_new_round = lastEvent match {
-        case _: NewRoundEvent => Some(tui.printNewRound(players, r))
-        case _: GameStartedEvent => Some("Erste Phase: " + r.validators(0).description)
-        case _ => None
-      }
-      Ok(views.html.game(discardedCards, player_status, get_input_panel(), alert_new_round))
-    }
-  }
-
   def get_post_response(): JsObject = {
     for (r <- webSocketReactors) {
       r.publish("Spielstand geändert")
@@ -147,7 +110,13 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         JsObject(Seq(
           "event" -> JsString("GameStartedEvent"),
           "players" -> JsArray(players.map(p => JsString(p))),
-          cardStashCurrentPlayer(t)
+          "newCard" -> cardToJSon(e.newCard),
+          "openCard" -> cardToJSon(t.openCard),
+          "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
+          "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
+          "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
+          cardStashCurrentPlayer(t),
+          discardedStash(t)
         ))
       }
       case e: NewRoundEvent => {
@@ -179,7 +148,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
           "event" -> JsString("GoToDiscardEvent"),
           "card_group_size" -> JsNumber(r.validators(t.current_player).getNumberOfInputs().size),
           cardStashCurrentPlayer(t),
-          cardStashCurrentPlayer(t),
+          discardedStash(t)
         ))
       }
       case _: GoToInjectEvent => {

@@ -4,11 +4,16 @@
 
 # Controller for Sudoku
 
-GET     /                           controllers.Phase10WebController.phase10
+GET     /                           controllers.Phase10WebController.home()
+
+GET     /game                       controllers.Phase10WebController.phase10
 
 GET     /help                       controllers.Phase10WebController.help
 
 GET     /about                      controllers.Phase10WebController.about
+
++nocsrf
+POST    /get_game_state             controllers.Phase10WebController.get_game_state()
 
 +nocsrf
 POST    /no_inject                  controllers.Phase10WebController.no_inject()

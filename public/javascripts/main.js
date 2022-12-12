@@ -1,8 +1,3 @@
-let alert_text = document.getElementById('hidden_text_alert')
-if (alert_text != null) {
-    alert(alert_text.innerText)
-}
-
 $( document ).ready(function() {
     console.log( "Document is ready." );
     websocket = connectWebSocket()
@@ -134,6 +129,9 @@ function update(data) {
         turnEnded(data)
     } else if (event == "GoToInjectEvent") {
         goToInject(data)
+    } else if (event == "GameStartedEvent") {
+        turnEnded(data)
+        alert(new_round_message(data))
     } else {
         document.location.reload()
     }
@@ -173,3 +171,5 @@ function connectWebSocket() {
     };
     return websocket
 }
+
+post_data("/get_game_state", {})
