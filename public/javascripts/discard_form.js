@@ -1,4 +1,4 @@
-function discard_form() {
+function discard() {
     let values = ""
     let i = 0
     while(document.getElementById("inlineCheckbox"+i+"_0") != null) {
@@ -24,5 +24,5 @@ function discard_form() {
 function no_discard() {
     post_data('/no_discard', {})
 }
-document.getElementById("submit_discard").onclick = discard_form
+document.getElementById("submit_discard").onclick = discard
 document.getElementById("no_discard").onclick = no_discard
