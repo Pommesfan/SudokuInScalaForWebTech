@@ -19,7 +19,7 @@ function submit_player_names() {
 }
 
 function submit_admission() {
-    sessionStorage.setItem("thisPlayer", document.getElementById("admission_name"))
+    sessionStorage.setItem("thisPlayer", document.getElementById("admission_name").value)
     update()
 }
 

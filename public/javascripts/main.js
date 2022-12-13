@@ -1,8 +1,3 @@
-$( document ).ready(function() {
-    console.log( "Document is ready." );
-    websocket = connectWebSocket()
-});
-
 function get_player_name(idx) {
     return sessionStorage.getItem("player_" + idx)
 }
@@ -144,7 +139,7 @@ function connectWebSocket() {
 
     websocket.onopen = function(event) {
         console.log("Trying to connect to Server");
-        websocket.send("Trying to connect to Server");
+        websocket.send("setPlayer:" + sessionStorage.getItem("thisPlayer"));
     }
 
     websocket.onclose = function () {
@@ -172,4 +167,9 @@ function connectWebSocket() {
     return websocket
 }
 
-post_data("/get_game_state", {})
+post_data("/get_game_state", {"player": sessionStorage.getItem("thisPlayer")})
+
+$( document ).ready(function() {
+    console.log( "Document is ready." );
+    websocket = connectWebSocket()
+});
