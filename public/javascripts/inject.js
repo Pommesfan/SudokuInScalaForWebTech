@@ -5,16 +5,17 @@ function inject() {
     let group_to = parseInt(target[1])
     let position_to = target[2]
 
-    post_data('/inject', {
+    websocket.send(JSON.stringify({
+        "cmd": "inject",
         "card_to_inject": card_to_inject,
         "player_to": player_to,
         "group_to": group_to,
         "position_to": position_to
-    })
+    }))
 }
 
 function no_inject() {
-    post_data('/no_inject', {})
+    websocket.send(JSON.stringify({"cmd": "no_inject"}))
 }
 
 document.getElementById("btn_inject").onclick = inject

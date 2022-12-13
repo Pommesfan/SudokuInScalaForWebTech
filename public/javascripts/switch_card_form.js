@@ -1,6 +1,6 @@
 function switch_card(mode) {
     let card_index = parseInt(document.querySelector('input[name="card_index"]:checked').value)
-    post_data('/switch_cards', { "mode": mode, "index": card_index})
+    websocket.send(JSON.stringify({"cmd": "switch_cards", "mode": mode, "index": card_index}))
 }
 
 function new_card() {

@@ -18,11 +18,11 @@ function discard() {
     }
     //remove the separators at the and which are created in every iteration
     values = values.slice(0, values.length - 2)
-    post_data('/discard', {"cards": values})
+    websocket.send(JSON.stringify({"cmd": "discard", "cards": values}))
 }
 
 function no_discard() {
-    post_data('/no_discard', {})
+    websocket.send(JSON.stringify({"cmd": "no_discard"}))
 }
 document.getElementById("submit_discard").onclick = discard
 document.getElementById("no_discard").onclick = no_discard

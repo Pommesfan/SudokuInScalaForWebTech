@@ -13,25 +13,7 @@ GET     /help                       controllers.Phase10WebController.help
 GET     /about                      controllers.Phase10WebController.about
 
 +nocsrf
-POST    /get_game_state             controllers.Phase10WebController.get_game_state()
-
-+nocsrf
-POST    /no_inject                  controllers.Phase10WebController.no_inject()
-
-+nocsrf
-POST    /inject                     controllers.Phase10WebController.inject()
-
-+nocsrf
-POST    /switch_cards               controllers.Phase10WebController.switch_cards()
-
-+nocsrf
 POST    /set_players                controllers.Phase10WebController.set_players()
-
-+nocsrf
-POST    /discard                    controllers.Phase10WebController.discard()
-
-+nocsrf
-POST    /no_discard                 controllers.Phase10WebController.no_discard()
 
 GET     /reset                      controllers.Phase10WebController.reset()
 

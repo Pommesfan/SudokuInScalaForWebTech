@@ -127,8 +127,6 @@ function update(data) {
     } else if (event == "GameStartedEvent") {
         turnEnded(data)
         alert(new_round_message(data))
-    } else {
-        document.location.reload()
     }
 }
 
@@ -139,7 +137,8 @@ function connectWebSocket() {
 
     websocket.onopen = function(event) {
         console.log("Trying to connect to Server");
-        websocket.send("setPlayer:" + sessionStorage.getItem("thisPlayer"));
+        websocket.send(JSON.stringify({"cmd": "loginPlayer", "loggedInPlayer": sessionStorage.getItem("thisPlayer")}))
+        websocket.send(JSON.stringify({"cmd": "getStatus"}))
     }
 
     websocket.onclose = function () {
@@ -152,8 +151,8 @@ function connectWebSocket() {
 
     websocket.onmessage = function (e) {
         if (typeof e.data === "string") {
-            console.log('String message received: ' + e.data);
-            alert('String message received: ' + e.data)
+            let js = JSON.parse(e.data)
+            update(js)
         }
         else if (e.data instanceof ArrayBuffer) {
             console.log('ArrayBuffer received: ' + e.data);
@@ -166,8 +165,6 @@ function connectWebSocket() {
     };
     return websocket
 }
-
-post_data("/get_game_state", {"player": sessionStorage.getItem("thisPlayer")})
 
 $( document ).ready(function() {
     console.log( "Document is ready." );
