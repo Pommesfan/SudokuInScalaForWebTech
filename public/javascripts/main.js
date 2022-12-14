@@ -86,6 +86,14 @@ function new_round_message(data) {
 
 function turnEnded(data) {
     let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
+    document.getElementById("playerCards").innerHTML = new_player_cards
+    document.getElementById("inputFormSwitch").hidden = true
+    document.getElementById("inputFormDiscard").hidden = true
+    document.getElementById("inputFormInject").hidden = true
+}
+
+function playersTurn(data) {
+    let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
     let new_discarded_cards = discarded_cards(data['discardedStash'], false)
     document.getElementById("playerCards").innerHTML = new_player_cards
     document.getElementById("discardedCards").innerHTML = new_discarded_cards
@@ -122,10 +130,13 @@ function update(data) {
         alert(new_round_message(data))
     } else if(data['event'] == "TurnEndedEvent") {
         turnEnded(data)
+    } else if(data['event'] == "PlayersTurnEvent") {
+        alert("Du bist dran!")
+        playersTurn(data)
     } else if (event == "GoToInjectEvent") {
         goToInject(data)
     } else if (event == "GameStartedEvent") {
-        turnEnded(data)
+        playersTurn(data)
         alert(new_round_message(data))
     }
 }

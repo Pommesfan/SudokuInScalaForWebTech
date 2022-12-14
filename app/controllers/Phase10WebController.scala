@@ -51,7 +51,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       l = l :+ names(i).asInstanceOf[JsString].value
     }
     c.solve(new DoCreatePlayerEvent(l))
-    Ok(respond())
+    Ok("{}")
   }
 
   def switch_cards(json: JsValue): Unit = {
@@ -88,28 +88,42 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     phase10
   }
 
-  def process_user_input(cmd: String, json: JsValue): JsObject = {
-    cmd match {
-      case "switch_cards" => switch_cards(json)
-      case "discard" => discard(json)
-      case "no_discard" => no_discard()
-      case "inject" => inject(json)
-      case "no_inject" => no_inject()
-      case _ => ;
-    }
-    respond()
-  }
+  class PlayersTurnEvent(val newCard: Card) extends OutputEvent
 
-
-  def respond(): JsObject = {
+  def process_user_input(cmd: String, json: JsValue, player: String): JsObject = {
     val g = c.getGameData
     val r = g._1
     val t = g._2
-    get_post_response(r,t)
+    val players = c.getPlayers()
+    val current_player = t.current_player
+    if (player == players(t.current_player)) {
+      cmd match {
+        case "switch_cards" => switch_cards(json)
+        case "discard" => discard(json)
+        case "no_discard" => no_discard()
+        case "inject" => inject(json)
+        case "no_inject" => no_inject()
+        case _ => ;
+      }
+
+      val new_g = c.getGameData
+      val new_r = new_g._1
+      val new_t = new_g._2
+      //Turn Ended -> send new cardstash to last player and full data to new
+      if(lastEvent.isInstanceOf[TurnEndedEvent]) {
+        val next_player = new_t.current_player
+        val eventToOpponent = new PlayersTurnEvent(lastEvent.asInstanceOf[TurnEndedEvent].newCard)
+        val reactor = getReactor(players(next_player))
+        reactor.get.publish(get_post_response(new_r, new_t, players, next_player, eventToOpponent).toString())
+      }
+      get_post_response(new_r,new_t, players, current_player, lastEvent)
+    } else {
+      JsObject(Seq())
+    }
   }
 
-  def get_post_response(r: RoundData, t:TurnData): JsObject = {
-    lastEvent match {
+  def get_post_response(r: RoundData, t:TurnData, player: List[String], referring_player: Int, event: OutputEvent): JsObject = {
+    event match {
       case e: GameStartedEvent => {
         val players = c.getPlayers()
         JsObject(Seq(
@@ -120,8 +134,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
           "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
           "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
           "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
-          "activePlayer" -> JsNumber(t.current_player),
-          cardStashCurrentPlayer(t),
+          "activePlayer" -> JsNumber(referring_player),
+          cardStashCurrentPlayer(t, referring_player),
           discardedStash(t)
         ))
       }
@@ -132,37 +146,43 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
           "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
           "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
           "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
-          "activePlayer" -> JsNumber(t.current_player),
+          "activePlayer" -> JsNumber(referring_player),
           "newCard" -> cardToJSon(e.newCard),
           "openCard" -> cardToJSon(t.openCard),
-          cardStashCurrentPlayer(t),
+          cardStashCurrentPlayer(t, referring_player),
+          discardedStash(t)
+        ))
+      }
+      case e: PlayersTurnEvent => {
+        JsObject(Seq(
+          "event" -> JsString("PlayersTurnEvent"),
+          "activePlayer" -> JsNumber(referring_player),
+          "newCard" -> cardToJSon(e.newCard),
+          "openCard" -> cardToJSon(t.openCard),
+          cardStashCurrentPlayer(t, referring_player),
           discardedStash(t)
         ))
       }
       case e: TurnEndedEvent => {
         JsObject(Seq(
           "event" -> JsString("TurnEndedEvent"),
-          "activePlayer" -> JsNumber(t.current_player),
-          "newCard" -> cardToJSon(e.newCard),
-          "openCard" -> cardToJSon(t.openCard),
-          cardStashCurrentPlayer(t),
-          discardedStash(t)
+          cardStashCurrentPlayer(t, referring_player),
         ))
       }
       case _: GoToDiscardEvent => {
         JsObject(Seq(
           "event" -> JsString("GoToDiscardEvent"),
-          "activePlayer" -> JsNumber(t.current_player),
-          "card_group_size" -> JsNumber(r.validators(t.current_player).getNumberOfInputs().size),
-          cardStashCurrentPlayer(t),
+          "activePlayer" -> JsNumber(referring_player),
+          "card_group_size" -> JsNumber(r.validators(referring_player).getNumberOfInputs().size),
+          cardStashCurrentPlayer(t, referring_player),
           discardedStash(t)
         ))
       }
       case _: GoToInjectEvent => {
         JsObject(Seq(
           "event" -> JsString("GoToInjectEvent"),
-          "activePlayer" -> JsNumber(t.current_player),
-          cardStashCurrentPlayer(t),
+          "activePlayer" -> JsNumber(referring_player),
+          cardStashCurrentPlayer(t, referring_player),
           discardedStash(t)
         ))
       }
@@ -185,9 +205,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     )
   }
 
-  private def cardStashCurrentPlayer(t: TurnData): (String, JsArray) = {
+  private def cardStashCurrentPlayer(t: TurnData, referring_player: Int): (String, JsArray) = {
     "cardStash" -> JsArray(
-        t.playerCardDeck.cards(t.current_player).map(c => cardToJSon(c))
+        t.playerCardDeck.cards(referring_player).map(c => cardToJSon(c))
     )
   }
 
@@ -240,7 +260,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         if(cmd == "loginPlayer") {
           reactor.name = json("loggedInPlayer").asInstanceOf[JsString].value
         } else {
-          sendJsonToClient(process_user_input(cmd, json).toString())
+          sendJsonToClient(process_user_input(cmd, json, reactor.name).toString())
         }
     }
 
