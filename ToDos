@@ -1,4 +1,16 @@
 [ ] Reset Button -> Macht einen Adresszusatz -> Spiel starten geht nicht - Rebecca
 [x] Nach Spielstand Webseite aktualisieren mit Javascript - Johannes
-[ ] Nachricht mit Websocket an andere Web-Clients - Johannes
-[ ] Vue anschauen - Rebecca
+[x] Nachricht mit Websocket an andere Web-Clients - Johannes
+[x] Vue anschauen - Rebecca
+[ ] Struktur von process_user_input() überarbeiten, websocket das Kommandogebers übergeben, statt der Rückgabe eines JSON-Konstrukts
+    wenn notwendig gegnerischen Websocket holen und alle Code anpassen, dass aktiver und gegnerischer Spieler entsprechende
+    Benachrichtigungen bekommen
+    -> PlayersTurnEvent wieder entfernen, nur die Events vom Original handhaben
+    -> Bei TurnEnded aktiven + gegnerischen/ bzw. nächsten Spieler entsprechend informieren
+    -> Seite neu laden, soll bei aktivem Spieler und Gegner antsprechende Ausgabe bringen, bisher nacktes HTML bei Gegner
+       Gegner erhält letztes Event seines Zugs
+    -> NewRound und GameStarted => Alle informieren, den aktiven zusätzlich, dass er dran ist
+    -> JSON-Kontrukte entsprechend in Funktionen auslagern(Addieren von Sequenzen anschauen)
+  Rebecca
+[ ] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
+[ ] Karten-Design als Web-Komponenten - Johannes
