@@ -97,8 +97,16 @@ function playersTurn(data) {
     let new_discarded_cards = discarded_cards(data['discardedStash'], false)
     document.getElementById("playerCards").innerHTML = new_player_cards
     document.getElementById("discardedCards").innerHTML = new_discarded_cards
-    document.getElementById("newCard").innerHTML = cardToString(data['newCard'])
-    document.getElementById("openCard").innerHTML = cardToString(data['openCard'])
+
+    let newCard = data['newCard']
+    let openCard = data['openCard']
+    let newCardDiv = document.getElementById("newCard")
+    let openCardDiv = document.getElementById("openCard")
+    newCardDiv.innerHTML = ""
+    openCardDiv.innerHTML = ""
+    newCardDiv.appendChild(drawCard(newCard['value'], newCard['color']))
+    openCardDiv.appendChild(drawCard(openCard['value'], openCard['color']))
+
     document.getElementById("currentPlayer").innerHTML = get_player_name(data['activePlayer'])
     document.getElementById("inputFormSwitch").hidden = false
     document.getElementById("inputFormDiscard").hidden = true

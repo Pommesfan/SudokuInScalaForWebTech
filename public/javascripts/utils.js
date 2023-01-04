@@ -26,6 +26,21 @@ function cardToString(c) {
 }
 
 function drawCard(number, color) {
+    function getColor() {
+        switch (color) {
+            case 1:
+                return "red"
+            case 2:
+                return "yellow"
+            case 3:
+                return "blue"
+            case 4:
+                return "green"
+        }
+    }
+    if (typeof color == 'number') {
+        color = getColor(color)
+    }
     var c = document.createElement("canvas")
     c.width = 100
     c.height = 150
