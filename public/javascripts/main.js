@@ -3,48 +3,42 @@ function get_player_name(idx) {
 }
 
 function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
-    let html = ""
+    let playerCardsDiv = document.getElementById("playerCards")
+    playerCardsDiv.innerHTML = ""
+    let rowDiv = document.createElement("div")
+    rowDiv.setAttribute("class", "row")
     for (let i = 0; i < cards.length; i++) {
-        html += `
-            <div class="row">
-                <div class="col-7">
-                    ${i}: ${cardToString(cards[i])}
-                </div>
-                ${checkboxes(i, cardGroupSize, show_checkboxes)}
-                ${radio_buttons_player_cards(i, show_radio_buttons)}
-            </div>`
-        html += "\n<br>\n"
-    }
-    return html
-}
-
-function checkboxes(i, cardGroupSize, show_checkboxes) {
-    let html = ""
-    if (show_checkboxes) {
-        for (let j = 0; j < cardGroupSize; j++) {
-            html += `
-            <div class="col-1">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" id=${"inlineCheckbox" + j + "_" + i}>
-                </div>
-            </div>`
-            html += "\n"
+        let colDiv = document.createElement("div")
+        colDiv.setAttribute("class", "col")
+        colDiv.appendChild(drawCard(cards[i]['value'], cards[i]['color']))
+        if(show_radio_buttons) {
+            colDiv.appendChild(radio_buttons_player_cards(i))
         }
+        if(show_checkboxes) {
+            checkboxes(i, cardGroupSize, colDiv)
+        }
+        rowDiv.appendChild(colDiv)
     }
-    return html
+    playerCardsDiv.appendChild(rowDiv)
 }
 
-function radio_buttons_player_cards(i, show_radio_buttons) {
-    let html = ""
-    if (show_radio_buttons) {
-        html += `
-            <div class="col-1">
-                <div class="form-check form-check-inline">
-                    <input id=${"selected_player_card_" + i} class="form-check-input" type="radio" name="card_index" value=${i}>
-                </div>
-            </div>`
+function checkboxes(i, cardGroupSize, colDiv) {
+    for (let j = 0; j < cardGroupSize; j++) {
+        let checkbox = document.createElement("input")
+        checkbox.setAttribute("class", "form-check-input")
+        checkbox.type = "checkbox"
+        checkbox.id = "inlineCheckbox" + j + "_" + i
+        colDiv.appendChild(checkbox)
     }
-    return html + "\n"
+}
+
+function radio_buttons_player_cards(i) {
+    let radioButton = document.createElement("input")
+    radioButton.id = "selected_player_card_" + i
+    radioButton.type="radio"
+    radioButton.name="card_index"
+    radioButton.value=i
+    return radioButton
 }
 
 function discarded_cards(cardStashes, show_radio_buttons) {
@@ -85,17 +79,15 @@ function new_round_message(data) {
 }
 
 function turnEnded(data) {
-    let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
-    document.getElementById("playerCards").innerHTML = new_player_cards
+    show_player_cards(data['cardStash'], false, true, data['card_group_size'])
     document.getElementById("inputFormSwitch").hidden = true
     document.getElementById("inputFormDiscard").hidden = true
     document.getElementById("inputFormInject").hidden = true
 }
 
 function playersTurn(data) {
-    let new_player_cards = show_player_cards(data['cardStash'], false, true, data['card_group_size'])
+    show_player_cards(data['cardStash'], false, true, data['card_group_size'])
     let new_discarded_cards = discarded_cards(data['discardedStash'], false)
-    document.getElementById("playerCards").innerHTML = new_player_cards
     document.getElementById("discardedCards").innerHTML = new_discarded_cards
 
     let newCard = data['newCard']
@@ -114,8 +106,7 @@ function playersTurn(data) {
 }
 
 function goToDiscard(data) {
-    let new_html = show_player_cards(data['cardStash'], true, false, data['card_group_size'])
-    document.getElementById("playerCards").innerHTML = new_html
+    show_player_cards(data['cardStash'], true, false, data['card_group_size'])
     document.getElementById("inputFormSwitch").hidden = true
     document.getElementById("inputFormDiscard").hidden = false
 }
@@ -123,9 +114,8 @@ function goToDiscard(data) {
 function goToInject(data) {
     document.getElementById("inputFormSwitch").hidden = true
     document.getElementById("inputFormInject").hidden = false
-    let new_player_cards = show_player_cards(data['cardStash'], false, true, 0)
+    show_player_cards(data['cardStash'], false, true, 0)
     let new_discarded_cards = discarded_cards(data['discardedStash'], true)
-    document.getElementById("playerCards").innerHTML = new_player_cards
     document.getElementById("discardedCards").innerHTML = new_discarded_cards
 }
 
