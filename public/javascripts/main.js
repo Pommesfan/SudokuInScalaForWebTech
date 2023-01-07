@@ -41,30 +41,46 @@ function radio_buttons_player_cards(i) {
     return radioButton
 }
 
+function radio_buttons_discarded_Cards(i,j,position) {
+    let radioButton = document.createElement("input")
+    radioButton.type = "radio"
+    radioButton.name = "inject_to"
+    radioButton.value = i + "_" + j + "_" + position
+    return radioButton
+}
+
 function discarded_cards(cardStashes, show_radio_buttons) {
-    let html = ""
+    let discardedCardsDiv = document.getElementById("discardedCards")
+    discardedCardsDiv.innerHTML = ""
     for (let i = 0; i < cardStashes.length; i++) {
-        html += get_player_name(i) + `:<br>`
+        let textView = document.createElement("p")
+        textView.innerHTML = get_player_name(i)
+        discardedCardsDiv.appendChild(textView)
         let cardGroups = cardStashes[i]
         if (cardGroups == null) {
-            html += `Keine Karten<br>` + "\n"
+            let textView2 = document.createElement("p")
+            textView2.innerHTML = "Keine Karten"
+            discardedCardsDiv.appendChild(textView2)
         } else {
             for(let j = 0; j < cardGroups.length; j++) {
                 let cards = cardGroups[j]
-                if (show_radio_buttons) {
-                    html += `<input type="radio" name="inject_to" value=${i + "_" + j + "_FRONT"}>` + "<br>\n"
+
+                if(show_radio_buttons) {
+                    discardedCardsDiv.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
                 }
-                cards.forEach(c =>
-                    html += cardToString(c) + "<br>\n"
-                )
-                if (show_radio_buttons) {
-                    html += `<input type="radio" name="inject_to" value=${i + "_" + j + "_AFTER"}>` + "\n"
+
+                for (let c in cards) {
+                    let card = cards[c]
+                    let cardView = drawCard(card['value'], card['color'])
+                    discardedCardsDiv.appendChild(cardView)
                 }
-                html += `<br>`
+
+                if(show_radio_buttons) {
+                    discardedCardsDiv.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
+                }
             }
         }
     }
-    return html
 }
 
 function new_round_message(data) {
@@ -87,8 +103,7 @@ function turnEnded(data) {
 
 function playersTurn(data) {
     show_player_cards(data['cardStash'], false, true, data['card_group_size'])
-    let new_discarded_cards = discarded_cards(data['discardedStash'], false)
-    document.getElementById("discardedCards").innerHTML = new_discarded_cards
+    discarded_cards(data['discardedStash'], false)
 
     let newCard = data['newCard']
     let openCard = data['openCard']
@@ -115,7 +130,7 @@ function goToInject(data) {
     document.getElementById("inputFormSwitch").hidden = true
     document.getElementById("inputFormInject").hidden = false
     show_player_cards(data['cardStash'], false, true, 0)
-    let new_discarded_cards = discarded_cards(data['discardedStash'], true)
+    discarded_cards(data['discardedStash'], true)
     document.getElementById("discardedCards").innerHTML = new_discarded_cards
 }
 
