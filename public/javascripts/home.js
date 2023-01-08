@@ -6,9 +6,6 @@ function submit_player_names() {
             names.push(name)
         }
     }
-    for(let i = 0; i < names.length; i++) {
-        sessionStorage.setItem("player_" + i, names[i])
-    }
     sessionStorage.setItem("number_of_players", names.length)
     sessionStorage.setItem("thisPlayer", names[0])
     if(names.length < 2) {

@@ -136,6 +136,12 @@ function goToInject(data) {
 
 function update(data) {
     let event = data['event']
+    if(event == "sendPlayerNames") {
+        let names = data['players']
+        for(let i = 0; i < data['length']; i++) {
+            sessionStorage.setItem("player_" + i, names[i])
+        }
+    }
     if (event == "GoToDiscardEvent") {
         goToDiscard(data)
     } else if(event == "NewRoundEvent") {

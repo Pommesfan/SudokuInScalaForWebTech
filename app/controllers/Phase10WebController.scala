@@ -259,6 +259,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         val cmd = json("cmd").asInstanceOf[JsString].value
         if(cmd == "loginPlayer") {
           reactor.name = json("loggedInPlayer").asInstanceOf[JsString].value
+          val players = c.getPlayers()
+          def playersToJsArray = JsArray(players.map(s => JsString(s)))
+          sendJsonToClient(JsObject(Seq("event" -> JsString("sendPlayerNames"),
+                                        "length" -> JsNumber(players.length),
+                                        "players" -> playersToJsArray)).toString())
         } else {
           sendJsonToClient(process_user_input(cmd, json, reactor.name).toString())
         }
