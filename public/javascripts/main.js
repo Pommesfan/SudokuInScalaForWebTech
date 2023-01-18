@@ -131,7 +131,6 @@ function goToInject(data) {
     document.getElementById("inputFormInject").hidden = false
     show_player_cards(data['cardStash'], false, true, 0)
     discarded_cards(data['discardedStash'], true)
-    document.getElementById("discardedCards").innerHTML = new_discarded_cards
 }
 
 function update(data) {
