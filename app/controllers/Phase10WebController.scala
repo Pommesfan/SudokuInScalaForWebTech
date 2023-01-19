@@ -22,6 +22,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   c.add(this)
   c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
 
+  def status = Action {
+    Ok(Json.obj(
+      "online" -> true
+    )).withHeaders("Access-Control-Allow-Origin" -> "http://localhost:8080/")
+  }
+
   override def update(e: OutputEvent): String = {
     lastEvent = e
     ""

@@ -196,6 +196,8 @@ function connectWebSocket() {
     return websocket
 }
 
+
+
 $( document ).ready(function() {
     console.log( "Document is ready." );
     websocket = connectWebSocket()
