@@ -4,6 +4,10 @@ import scala.util.Random
 import model.Card
 
 object Utils {
+  val MULTIPLES = 1
+  val SEQUENCE = 2
+  val SAME_COLOR = 3
+
   val INJECT_TO_FRONT = 1
   val INJECT_AFTER = 2
   val NEW_CARD = 1

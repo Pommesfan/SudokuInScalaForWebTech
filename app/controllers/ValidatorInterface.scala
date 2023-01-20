@@ -13,6 +13,8 @@ trait ValidatorStrategyInterface {
   def validate(cards: List[Card], selectedCardIndexes: List[List[Int]]): Boolean
 
   def canAppend(cards: List[Card], cardToInject: Card, stashIndex: Int, position: Int): Boolean
+
+  def getCardGroups(): List[Int]
 }
 
 trait ValidatorFactoryInterface {

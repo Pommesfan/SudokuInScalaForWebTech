@@ -30,6 +30,14 @@ protected abstract class ValidatorStrategy(val numberOfPhase:Int) extends Valida
   def getNumberOfPhase(): Int = numberOfPhase
   def getNumberOfInputs(): List[Int] = cardGroups.map(cg => cg.numberOfCards)
 
+  def getCardGroups(): List[Int] = {
+    group_types.map {
+      case GroupType.MULTIPLES => Utils.MULTIPLES
+      case GroupType.SEQUENCE => Utils.SEQUENCE
+      case GroupType.SAME_COLOR => Utils.SAME_COLOR
+    }
+  }
+
   def validate(cards: List[Card], selectedCardIndexes: List[List[Int]]): Boolean = {
     //no cards-index selected multiple
     if (!Utils.indexesUnique(selectedCardIndexes.flatten))
