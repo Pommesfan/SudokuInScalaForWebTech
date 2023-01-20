@@ -13,4 +13,4 @@
     -> JSON-Kontrukte entsprechend in Funktionen auslagern(Addieren von Sequenzen anschauen)
   Rebecca
 [ ] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
-[ ] Karten-Design als Web-Komponenten - Johannes
+[x] Karten-Design als Web-Komponenten - Johannes
