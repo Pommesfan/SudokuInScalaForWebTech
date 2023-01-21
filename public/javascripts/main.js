@@ -64,20 +64,22 @@ function discarded_cards(cardStashes, show_radio_buttons) {
         } else {
             for(let j = 0; j < cardGroups.length; j++) {
                 let cards = cardGroups[j]
-
+                let col = document.createElement('div')
+                col.setAttribute("class", "col-50")
                 if(show_radio_buttons) {
-                    discardedCardsDiv.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
+                    col.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
                 }
 
                 for (let c in cards) {
                     let card = cards[c]
                     let cardView = drawCard(card['value'], card['color'])
-                    discardedCardsDiv.appendChild(cardView)
+                    col.appendChild(cardView)
                 }
 
                 if(show_radio_buttons) {
-                    discardedCardsDiv.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
+                    col.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
                 }
+                discardedCardsDiv.appendChild(col)
             }
         }
     }
