@@ -65,7 +65,7 @@ function discarded_cards(cardStashes, show_radio_buttons) {
             for(let j = 0; j < cardGroups.length; j++) {
                 let cards = cardGroups[j]
                 let col = document.createElement('div')
-                col.setAttribute("class", "col-50")
+                col.setAttribute("class", "col")
                 if(show_radio_buttons) {
                     col.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
                 }
