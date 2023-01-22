@@ -187,6 +187,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         JsObject(Seq(
           "event" -> JsString("TurnEndedEvent"),
           cardStashCurrentPlayer(t, referring_player),
+          discardedStash(t)
         ))
       }
       case _: GoToDiscardEvent => {

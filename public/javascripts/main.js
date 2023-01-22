@@ -97,7 +97,8 @@ function new_round_message(data) {
 }
 
 function turnEnded(data) {
-    show_player_cards(data['cardStash'], false, true, data['card_group_size'])
+    show_player_cards(data['cardStash'], false, false, data['card_group_size'])
+    discarded_cards(data['discardedStash'], false)
     document.getElementById("inputFormSwitch").hidden = true
     document.getElementById("inputFormDiscard").hidden = true
     document.getElementById("inputFormInject").hidden = true
