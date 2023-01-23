@@ -116,6 +116,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val t = g._2
     val players = c.getPlayers()
     val current_player = t.current_player
+    //block action of player who is not at turn
     if (player == players(t.current_player)) {
       cmd match {
         case "switch_cards" => switch_cards(json)
@@ -129,14 +130,34 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       val new_g = c.getGameData
       val new_r = new_g._1
       val new_t = new_g._2
-      //Turn Ended -> send new cardstash to last player and full data to new
-      if(lastEvent.isInstanceOf[TurnEndedEvent]) {
+
+      val isTurnEnded = lastEvent.isInstanceOf[TurnEndedEvent]
+      val isNewRound = lastEvent.isInstanceOf[NewRoundEvent]
+
+      //alert to all by new round
+      if(isNewRound) {
+        val newRoundMsg = get_post_response(new_r, new_t, players, 0, lastEvent).toString()
+        for (r <- webSocketReactors) {
+          r.publish(newRoundMsg)
+        }
+      }
+      //Turn Ended -> inform opponent
+      if(isTurnEnded || isNewRound) {
         val next_player = new_t.current_player
-        val eventToOpponent = new PlayersTurnEvent(lastEvent.asInstanceOf[TurnEndedEvent].newCard)
+        def newCard = if(isNewRound) lastEvent.asInstanceOf[NewRoundEvent].newCard
+                      else lastEvent.asInstanceOf[TurnEndedEvent].newCard
+        val eventToOpponent = new PlayersTurnEvent(newCard)
         val reactor = getReactor(players(next_player))
         reactor.get.publish(get_post_response(new_r, new_t, players, next_player, eventToOpponent).toString())
       }
-      get_post_response(new_r,new_t, players, current_player, lastEvent)
+      //By new round, send turn-ended back
+      def eventToCaller =
+        if(isNewRound)
+          new TurnEndedEvent(lastEvent.asInstanceOf[NewRoundEvent].newCard)
+        else
+          lastEvent
+
+      get_post_response(new_r,new_t, players, current_player, eventToCaller)
     } else {
       JsObject(Seq())
     }
@@ -167,10 +188,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
           "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
           "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)).toSeq),
           "activePlayer" -> JsNumber(referring_player),
-          "newCard" -> cardToJSon(e.newCard),
-          "openCard" -> cardToJSon(t.openCard),
-          cardStashCurrentPlayer(t, referring_player),
-          discardedStash(t)
         ))
       }
       case e: PlayersTurnEvent => {
@@ -274,17 +291,24 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
     webSocketReactors = webSocketReactors :+ reactor
 
+    def login_player(json: JsValue) = {
+      reactor.name = json("loggedInPlayer").asInstanceOf[JsString].value
+
+      val players = c.getPlayers()
+
+      def playersToJsArray = JsArray(players.map(s => JsString(s)))
+
+      sendJsonToClient(JsObject(Seq("event" -> JsString("sendPlayerNames"),
+        "length" -> JsNumber(players.length),
+        "players" -> playersToJsArray)).toString())
+    }
+
     def receive = {
       case msg: String =>
         val json = Json.parse(msg)
         val cmd = json("cmd").asInstanceOf[JsString].value
         if(cmd == "loginPlayer") {
-          reactor.name = json("loggedInPlayer").asInstanceOf[JsString].value
-          val players = c.getPlayers()
-          def playersToJsArray = JsArray(players.map(s => JsString(s)))
-          sendJsonToClient(JsObject(Seq("event" -> JsString("sendPlayerNames"),
-                                        "length" -> JsNumber(players.length),
-                                        "players" -> playersToJsArray)).toString())
+          login_player(json)
         } else {
           sendJsonToClient(process_user_input(cmd, json, reactor.name).toString())
         }
