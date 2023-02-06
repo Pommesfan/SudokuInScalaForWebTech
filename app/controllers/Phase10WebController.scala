@@ -11,6 +11,7 @@ import play.api.libs.streams.ActorFlow
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.actor._
+import scala.collection.mutable.TreeMap
 
 
 
@@ -138,7 +139,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       if(isNewRound) {
         val newRoundMsg = get_post_response(new_r, new_t, players, 0, lastEvent).toString()
         for (r <- webSocketReactors) {
-          r.publish(newRoundMsg)
+          r._2.publish(newRoundMsg)
         }
       }
       //Turn Ended -> inform opponent
@@ -262,14 +263,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  def getReactor(player: String): Option[WebSocketReactor] = {
-    for(r <- webSocketReactors) {
-      if(r.name == player) {
-        return Some(r)
-      }
-    }
-    None
-  }
+  def getReactor(player: String): Option[WebSocketReactor] = webSocketReactors.get(player)
 
   object MyWebSocketActor {
     def props(out: ActorRef) = {
@@ -278,7 +272,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  var webSocketReactors = List[WebSocketReactor]()
+  val webSocketReactors = new TreeMap[String, WebSocketReactor]()
   abstract class WebSocketReactor() {
     var name = ""
     def publish(msg: String)
@@ -289,12 +283,16 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     private val reactor = new WebSocketReactor {
       override def publish(msg: String): Unit = sendJsonToClient(msg)
     }
-    webSocketReactors = webSocketReactors :+ reactor
 
-    def login_player(json: JsValue) = {
-      reactor.name = json("loggedInPlayer").asInstanceOf[JsString].value
-
+    private def login_player(json: JsValue): Unit = {
       val players = c.getPlayers()
+      val name = json("loggedInPlayer").asInstanceOf[JsString].value
+      if(!players.contains(name)) {
+        return
+      }
+
+      webSocketReactors.put(name, reactor)
+      reactor.name = name
 
       def playersToJsArray = JsArray(players.map(s => JsString(s)))
 
