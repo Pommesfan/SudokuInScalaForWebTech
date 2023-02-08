@@ -122,7 +122,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val g = c.getGameData
     def new_r = g._1
     def new_t = g._2
-    def reactorOpponent = getReactor(c.getPlayers()(new_t.current_player)).get
+    def publishToOpponent(json: JsValue) = {
+      getReactor(c.getPlayers()(new_t.current_player)) match {
+        case Some(r) => r.publish(json.toString())
+        case None =>
+      }
+    }
 
     def inform_all_of_new_round(): Unit =
       for (reactor <- webSocketReactors) {
@@ -137,10 +142,10 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case e :NewRoundEvent =>
         inform_all_of_new_round()
         turnEnded()
-        reactorOpponent.publish(json_playersTurn(new_r, new_t, new_t.current_player, e.newCard).toString())
+        publishToOpponent(json_playersTurn(new_r, new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent => {
         turnEnded()
-        reactorOpponent.publish(json_playersTurn(new_r, new_t, new_t.current_player, e.newCard).toString())
+        publishToOpponent(json_playersTurn(new_r, new_t, new_t.current_player, e.newCard))
       }
       case _ :GoToDiscardEvent => reactor.publish(json_discarded(new_r,new_t,new_t.current_player).toString())
       case _ :GoToInjectEvent => reactor.publish(json_inject(new_t, new_t.current_player).toString())
