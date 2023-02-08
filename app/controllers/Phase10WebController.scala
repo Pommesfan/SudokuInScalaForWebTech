@@ -291,7 +291,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         val cmd = json("cmd").asInstanceOf[JsString].value
         if(cmd == "loginPlayer") {
           login_player(json)
-        } else {
+        } else if(webSocketReactors.contains(reactor.name)) {
           process_user_input(cmd, json, reactor)
         }
     }
