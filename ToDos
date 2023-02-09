@@ -2,7 +2,7 @@
 [x] Nach Spielstand Webseite aktualisieren mit Javascript - Johannes
 [x] Nachricht mit Websocket an andere Web-Clients - Johannes
 [x] Vue anschauen - Rebecca
-[ ] Struktur von process_user_input() überarbeiten, websocket das Kommandogebers übergeben, statt der Rückgabe eines JSON-Konstrukts
+[x] Struktur von process_user_input() überarbeiten, websocket das Kommandogebers übergeben, statt der Rückgabe eines JSON-Konstrukts
     wenn notwendig gegnerischen Websocket holen und alle Code anpassen, dass aktiver und gegnerischer Spieler entsprechende
     Benachrichtigungen bekommen
     -> PlayersTurnEvent wieder entfernen, nur die Events vom Original handhaben
@@ -14,3 +14,5 @@
   Rebecca
 [ ] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
 [x] Karten-Design als Web-Komponenten - Johannes
+[ ] Problem wenn eine Kartenfolge über 12->1 geht
+[ ] Neue und offenliegende Karte nebeneinander
