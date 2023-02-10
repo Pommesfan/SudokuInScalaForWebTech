@@ -15,4 +15,4 @@
 [x] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
 [x] Karten-Design als Web-Komponenten - Johannes
 [ ] Problem wenn eine Kartenfolge über 12->1 geht
-[ ] Neue und offenliegende Karte nebeneinander
+[x] Neue und offenliegende Karte nebeneinander
