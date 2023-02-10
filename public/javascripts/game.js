@@ -11,6 +11,7 @@ function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroup
         let colDiv = document.createElement("div")
         colDiv.setAttribute("class", "col")
         colDiv.appendChild(drawCard(cards[i]['value'], cards[i]['color']))
+        colDiv.appendChild(document.createElement("br"))
         if(show_radio_buttons) {
             colDiv.appendChild(radio_buttons_player_cards(i))
         }
@@ -165,7 +166,7 @@ function update(data) {
 
 function connectWebSocket() {
     console.log("Connecting to Websocket");
-    var websocket = new WebSocket("ws://localhost:9000/websocket");
+    var websocket = new WebSocket("ws://" + location.host + "/websocket");
     console.log("Connected to Websocket");
 
     websocket.onopen = function(event) {
