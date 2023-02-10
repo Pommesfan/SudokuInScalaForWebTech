@@ -1,4 +1,4 @@
-[x] Reset Button -> Macht einen Adresszusatz -> Spiel starten geht nicht - Rebecca
+[ ] Reset Button -> Macht einen Adresszusatz -> Spiel starten geht nicht - Rebecca
 [x] Nach Spielstand Webseite aktualisieren mit Javascript - Johannes
 [x] Nachricht mit Websocket an andere Web-Clients - Johannes
 [x] Vue anschauen - Rebecca
@@ -12,7 +12,7 @@
     -> NewRound und GameStarted => Alle informieren, den aktiven zusätzlich, dass er dran ist
     -> JSON-Kontrukte entsprechend in Funktionen auslagern(Addieren von Sequenzen anschauen)
   Rebecca
-[ ] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
+[x] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
 [x] Karten-Design als Web-Komponenten - Johannes
 [ ] Problem wenn eine Kartenfolge über 12->1 geht
 [ ] Neue und offenliegende Karte nebeneinander
