@@ -1,4 +1,4 @@
-[ ] Reset Button -> Macht einen Adresszusatz -> Spiel starten geht nicht - Rebecca
+[x] Reset Button -> Macht einen Adresszusatz -> Spiel starten geht nicht - Rebecca
 [x] Nach Spielstand Webseite aktualisieren mit Javascript - Johannes
 [x] Nachricht mit Websocket an andere Web-Clients - Johannes
 [x] Vue anschauen - Rebecca
