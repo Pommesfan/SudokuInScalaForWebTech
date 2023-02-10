@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>Phase 10 Hilfsseite</title>
         <link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/help.css")' />
+        <link href="@routes.Assets.versioned("stylesheets/bootstrap.min.css")" rel="stylesheet">
     </head>
     <body>
         <div class="text">
@@ -36,7 +37,8 @@
             </div>
         </div>
         <div>
-            <a href="/game">Back to Playing-Site</a>
+            <button id="back_from_about_or_help" type="submit" class="btn btn-primary">Zurück</button>
         </div>
     </body>
+    <script src='@routes.Assets.versioned("javascripts/help_about_page.js")'></script>
 </html>
