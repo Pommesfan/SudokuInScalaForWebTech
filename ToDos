@@ -14,6 +14,7 @@
   Rebecca
 [x] Zurück von about- oder help-page -> Fallunterscheidung Spiel aktiv oder nicht
 [x] Karten-Design als Web-Komponenten - Johannes
-[ ] Problem wenn eine Kartenfolge über 12->1 geht
+[x] Problem wenn eine Kartenfolge über 12->1 geht
 [x] Neue und offenliegende Karte nebeneinander
-[ ] Responsive-Design verbessern
+[ ] Responsive-Design verbessern bei Abgelegten Karten
+[ ] Canvas-Objekte und Radiobuttons, Checkboxen in Vue-Projekt nach Bedarf durch Template einfügen

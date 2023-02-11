@@ -66,25 +66,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     c.solve(new DoDiscardEvent(cards_sorted))
   }
 
-  def sort_sequences(cards: List[List[Int]]): List[List[Int]] = {
-    val g = c.getGameData
-    def r = g._1
-    def t = g._2
-
-    val card_types = r.validators(t.current_player).getCardGroups()
-    def playerCards = t.playerCardDeck.cards(t.current_player)
-
-    cards.zipWithIndex.map { e =>
-      def c = e._1
-      def n = e._2
-      if(card_types(n) == Utils.SEQUENCE) {
-        val a = c.sortWith((c1,c2) => playerCards(c1).value < playerCards(c2).value)
-        a
-      } else {
-        c
-      }
-    }
-  }
   def no_discard(): Unit = {
     c.solve(new DoNoDiscardEvent)
   }
@@ -295,6 +276,52 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     def sendJsonToClient(msg: String): Unit = {
       println("Received event from Controller")
       out ! msg
+    }
+  }
+
+  def sort_sequences(cards: List[List[Int]]): List[List[Int]] = {
+    def g = c.getGameData
+    def r = g._1
+    def t = g._2
+
+    val card_types = r.validators(t.current_player).getCardGroups()
+    def playerCards = t.playerCardDeck.cards(t.current_player)
+
+    def detectBound(l: List[Int]): Int = {
+      for (i <- 0 until l.size - 1) {
+        val j = i + 1
+        val a = playerCards(l(i))
+        val b = playerCards(l(j))
+        if (a.value + 1 != b.value ) {
+          return j
+        }
+      }
+      -1
+    }
+
+    def shiftCards(l: List[Int]): List[Int] = {
+      val bound = detectBound(l)
+      if (bound == -1) {
+        l
+      } else {
+        val new_l = new Array[Int](l.size)
+        for (i <- 0 until new_l.size) {
+          new_l(i) = l((i + bound) % l.size)
+        }
+        new_l.toList
+      }
+    }
+
+    cards.zipWithIndex.map { e =>
+      def c = e._1
+      def n = e._2
+      if (card_types(n) == Utils.SEQUENCE) {
+        val a = c.sortWith((c1, c2) => playerCards(c1).value < playerCards(c2).value)
+        val b = shiftCards(a)
+        b
+      } else {
+        c
+      }
     }
   }
 }
