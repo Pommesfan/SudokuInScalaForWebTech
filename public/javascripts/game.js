@@ -158,9 +158,6 @@ function update(data) {
         playersTurn(data)
     } else if (event == "GoToInjectEvent") {
         goToInject(data)
-    } else if (event == "GameStartedEvent") {
-        playersTurn(data)
-        alert(new_round_message(data))
     }
 }
 

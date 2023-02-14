@@ -110,14 +110,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
 
     def inform_all_of_new_round(): Unit = webSocketReactors.foreach {reactor =>
-        reactor._2.publish(json_newRound(new_r, new_t.current_player).toString())
+        reactor._2.publish(json_newRound(new_r).toString())
     }
 
     def turnEnded(): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player).toString())
 
     lastEvent match {
       case e :GameStartedEvent =>
-        reactor.publish(json_gameStarted(new_r, new_t, c.getPlayers(), new_t.current_player, e.newCard).toString())
+        reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).toString)
       case e :NewRoundEvent =>
         if(!isReload)
           inform_all_of_new_round()
@@ -144,25 +144,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  def json_gameStarted(r: RoundData, t:TurnData, players:List[String], referringPlayer: Int, newCard:Card): JsObject = JsObject(Seq(
-    "event" -> JsString("GameStartedEvent"),
-    "players" -> JsArray(players.map(p => JsString(p))),
-    "newCard" -> cardToJSon(newCard),
-    "openCard" -> cardToJSon(t.openCard),
-    "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
-    "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
-    "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n))),
-    "activePlayer" -> JsNumber(referringPlayer),
-    cardStashCurrentPlayer(t, referringPlayer),
-    discardedStash(t)))
-
-  def json_newRound(r:RoundData, referringPlayer:Int): JsObject = JsObject(Seq(
+  def json_newRound(r:RoundData): JsObject = JsObject(Seq(
     "event" -> JsString("NewRoundEvent"),
     "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
     "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
     "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
-    "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n))),
-    "activePlayer" -> JsNumber(referringPlayer)))
+    "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)))))
 
   def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
     "event" -> JsString("PlayersTurnEvent"),
@@ -269,6 +256,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         val cmd = json("cmd").asInstanceOf[JsString].value
         if(cmd == "loginPlayer") {
           login_player(json)
+          sendJsonToClient(json_newRound(c.getGameData._1).toString)
         } else if(webSocketReactors.contains(reactor.name)) {
           process_user_input(cmd, json, reactor)
         }
