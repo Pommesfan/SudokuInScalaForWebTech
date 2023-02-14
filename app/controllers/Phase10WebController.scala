@@ -101,6 +101,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val g = c.getGameData
     def new_r = g._1
     def new_t = g._2
+
     def publishToOpponent(json: JsValue): Unit = {
       getReactor(c.getPlayers()(new_t.current_player)) match {
         case Some(r) => r.publish(json.toString())
@@ -108,10 +109,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       }
     }
 
-    def inform_all_of_new_round(): Unit =
-      for (reactor <- webSocketReactors) {
+    def inform_all_of_new_round(): Unit = webSocketReactors.foreach {reactor =>
         reactor._2.publish(json_newRound(new_r, new_t.current_player).toString())
-      }
+    }
 
     def turnEnded(): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player).toString())
 
@@ -304,11 +304,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       if (bound == -1) {
         l
       } else {
-        val new_l = new Array[Int](l.size)
-        for (i <- 0 until new_l.size) {
-          new_l(i) = l((i + bound) % l.size)
-        }
-        new_l.toList
+        (0 until l.size).map(idx => l((idx + bound) % l.size)).toList
       }
     }
 
