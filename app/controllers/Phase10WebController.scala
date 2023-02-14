@@ -97,7 +97,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     case _ => ;
   }
 
-  def proceedOutput(old_t: TurnData, reactor: WebSocketReactor): Unit = {
+  def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, isReload: Boolean): Unit = {
     val g = c.getGameData
     def new_r = g._1
     def new_t = g._2
@@ -119,7 +119,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case e :GameStartedEvent =>
         reactor.publish(json_gameStarted(new_r, new_t, c.getPlayers(), new_t.current_player, e.newCard).toString())
       case e :NewRoundEvent =>
-        inform_all_of_new_round()
+        if(!isReload)
+          inform_all_of_new_round()
         turnEnded()
         publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent =>
@@ -137,7 +138,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     //block action of player who is not at turn
     if (reactor.name == players(t.current_player)) {
       proceedCommand(cmd, json)
-      proceedOutput(t, reactor)
+      proceedOutput(t, reactor, cmd=="getStatus")
     } else {
       reactor.publish(json_turnEnded(t, players.indexOf(reactor.name)).toString())
     }

@@ -12,8 +12,8 @@ class Controller extends ControllerInterface {
   def createPlayerCardDeck(numberOfPlayers: Int): PlayerCardDeck = new PlayerCardDeck(
     List.fill(numberOfPlayers)(List.fill(10)(createCard)))
   def nextPlayer(currentPlayer: Int, numberOfPlayers: Int): Int = (currentPlayer + 1) % numberOfPlayers
-  def createInitialTurnData(numberOfPlayers:Int) = new TurnData(
-    0,
+  def createInitialTurnData(numberOfPlayers:Int, currentPlayer:Int) = new TurnData(
+    currentPlayer,
     createPlayerCardDeck(numberOfPlayers),
     createCard,
     new DiscardedCardDeck(List.fill(numberOfPlayers)(None)))
@@ -74,7 +74,7 @@ class InitialState(validator: ValidatorFactoryInterface) extends ControllerState
     val newCard = controller.createCard
     (new SwitchCardControllerState(pPlayers,
       new RoundData(List.fill(numberOfPlayers)(validator.getValidator(1)), List.fill(numberOfPlayers)(0)),
-      controller.createInitialTurnData(numberOfPlayers),
+      controller.createInitialTurnData(numberOfPlayers, 0),
       newCard),
       new GameStartedEvent(newCard))
   }
@@ -158,7 +158,7 @@ class InjectControllerState(pPlayers: List[String], pR:RoundData, pT:TurnData) e
         return (new SwitchCardControllerState(
                 players,
                 controller.createNewRound(r, t.playerCardDeck.removeSingleCard(0, currentPlayer)._1.cards, playersHaveDiscarded),
-                controller.createInitialTurnData(players.size),
+                controller.createInitialTurnData(players.size, controller.nextPlayer(t.current_player, players.size)),
                 newCard),
                 new NewRoundEvent(newCard))
       }
