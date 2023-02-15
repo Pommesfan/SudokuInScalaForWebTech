@@ -137,16 +137,22 @@ function goToInject(data) {
     discarded_cards(data['discardedStash'], true)
 }
 
+function newGame(data) {
+    let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\nSpieler:"
+
+    let names = data['players']
+    const len = data['numberOfPlayers']
+    for(let i = 0; i < len; i++) {
+        sessionStorage.setItem("player_" + i, names[i])
+        msg += "\n" + names[i]
+    }
+    sessionStorage.setItem("number_of_players", len)
+
+    alert(msg)
+}
+
 function update(data) {
     let event = data['event']
-    if(event == "sendPlayerNames") {
-        let names = data['players']
-        const len = data['length']
-        for(let i = 0; i < len; i++) {
-            sessionStorage.setItem("player_" + i, names[i])
-        }
-        sessionStorage.setItem("number_of_players", len)
-    }
     if (event == "GoToDiscardEvent") {
         goToDiscard(data)
     } else if(event == "NewRoundEvent") {
@@ -158,6 +164,8 @@ function update(data) {
         playersTurn(data)
     } else if (event == "GoToInjectEvent") {
         goToInject(data)
+    }  else if (event == "NewGameEvent") {
+        newGame(data)
     }
 }
 
@@ -195,6 +203,10 @@ function connectWebSocket() {
         }
     };
     return websocket
+}
+
+if(sessionStorage.getItem("thisPlayer") == null) {
+    document.location.replace("/")
 }
 
 $( document ).ready(function() {

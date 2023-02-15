@@ -144,11 +144,17 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
+  def json_newGame(r:RoundData, players: List[String]): JsObject = JsObject(Seq(
+    "event" -> JsString("NewGameEvent"),
+    "numberOfPhase" -> JsNumber(r.validators(0).getNumberOfPhase()),
+    "phaseDescription" -> JsString(r.validators(0).description),
+    "players" -> JsArray(players.map(s => JsString(s))),
+    "numberOfPlayers" -> JsNumber(players.size)))
+
   def json_newRound(r:RoundData): JsObject = JsObject(Seq(
     "event" -> JsString("NewRoundEvent"),
     "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
     "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
-    "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
     "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)))))
 
   def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
@@ -240,14 +246,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         return
       }
 
+      if(!webSocketReactors.contains(name)) {
+        sendJsonToClient(json_newGame(c.getGameData._1, players).toString)
+      }
       webSocketReactors.put(name, reactor)
       reactor.name = name
-
-      def playersToJsArray = JsArray(players.map(s => JsString(s)))
-
-      sendJsonToClient(JsObject(Seq("event" -> JsString("sendPlayerNames"),
-        "length" -> JsNumber(players.length),
-        "players" -> playersToJsArray)).toString())
     }
 
     def receive: Receive = {
@@ -256,7 +259,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         val cmd = json("cmd").asInstanceOf[JsString].value
         if(cmd == "loginPlayer") {
           login_player(json)
-          sendJsonToClient(json_newRound(c.getGameData._1).toString)
         } else if(webSocketReactors.contains(reactor.name)) {
           process_user_input(cmd, json, reactor)
         }
