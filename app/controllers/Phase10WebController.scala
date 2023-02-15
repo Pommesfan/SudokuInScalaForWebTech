@@ -5,7 +5,7 @@ import play.api.libs.json.{JsArray, JsNull, JsNumber, JsObject, JsString, JsValu
 
 import javax.inject._
 import play.api.mvc._
-import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, ProgramStartedEvent, TurnEndedEvent, Utils}
+import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, ProgramStartedEvent, TurnEndedEvent, Utils, Phase10WebUtils}
 import play.api.libs.streams.ActorFlow
 import akka.actor.ActorSystem
 import akka.stream.Materializer
@@ -61,8 +61,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   def discard(json: JsValue): Unit = {
+    val g = c.getGameData
+    def r = g._1
+    def t = g._2
     val cards = json("cards").asInstanceOf[JsString].value
-    val cards_sorted = sort_sequences(Utils.makeGroupedIndexList(cards))
+    val cards_sorted = Phase10WebUtils.sort_sequences(Utils.makeGroupedIndexList(cards), r, t)
     c.solve(new DoDiscardEvent(cards_sorted))
   }
 
@@ -267,48 +270,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     def sendJsonToClient(msg: String): Unit = {
       println("Received event from Controller")
       out ! msg
-    }
-  }
-
-  def sort_sequences(cards: List[List[Int]]): List[List[Int]] = {
-    def g = c.getGameData
-    def r = g._1
-    def t = g._2
-
-    val card_types = r.validators(t.current_player).getCardGroups()
-    def playerCards = t.playerCardDeck.cards(t.current_player)
-
-    def detectBound(l: List[Int]): Int = {
-      for (i <- 0 until l.size - 1) {
-        val j = i + 1
-        val a = playerCards(l(i))
-        val b = playerCards(l(j))
-        if (a.value + 1 != b.value ) {
-          return j
-        }
-      }
-      -1
-    }
-
-    def shiftCards(l: List[Int]): List[Int] = {
-      val bound = detectBound(l)
-      if (bound == -1) {
-        l
-      } else {
-        (0 until l.size).map(idx => l((idx + bound) % l.size)).toList
-      }
-    }
-
-    cards.zipWithIndex.map { e =>
-      def c = e._1
-      def n = e._2
-      if (card_types(n) == Utils.SEQUENCE) {
-        val a = c.sortWith((c1, c2) => playerCards(c1).value < playerCards(c2).value)
-        val b = shiftCards(a)
-        b
-      } else {
-        c
-      }
     }
   }
 }
