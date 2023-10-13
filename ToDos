@@ -17,4 +17,5 @@
 [x] Problem wenn eine Kartenfolge über 12->1 geht
 [x] Neue und offenliegende Karte nebeneinander
 [ ] Responsive-Design verbessern bei Abgelegten Karten
-[ ] Canvas-Objekte und Radiobuttons, Checkboxen in Vue-Projekt nach Bedarf durch Template einfügen
+[x] Canvas-Objekte und Radiobuttons, Checkboxen in Vue-Projekt nach Bedarf durch Template einfügen
+[ ] Partially send changes of game state
