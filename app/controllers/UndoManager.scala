@@ -22,4 +22,9 @@ class UndoManager[C <: ControllerInterface] {
       }
     }
   }
+
+  def reset() = {
+    undoStack = Nil
+    redoStack = Nil
+  }
 }

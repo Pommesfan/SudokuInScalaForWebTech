@@ -5,11 +5,12 @@ import play.api.libs.json.{JsArray, JsNull, JsNumber, JsObject, JsString, JsValu
 
 import javax.inject._
 import play.api.mvc._
-import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, ProgramStartedEvent, TurnEndedEvent, Utils, Phase10WebUtils}
+import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameEndedEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, Phase10WebUtils, ProgramStartedEvent, TurnEndedEvent, Utils}
 import play.api.libs.streams.ActorFlow
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.actor._
+
 import scala.collection.mutable.TreeMap
 
 
@@ -53,14 +54,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     Ok("{}")
   }
 
-  def switch_cards(json: JsValue): Unit = {
+  private def switch_cards(json: JsValue): Unit = {
     val mode = json("mode").asInstanceOf[JsString].value
     val index = json("index").asInstanceOf[JsNumber].value.toInt
     def mode_to_Int = if (mode == "new") Utils.NEW_CARD else if (mode == "open") Utils.OPENCARD else -1
     c.solve(new DoSwitchCardEvent(index, mode_to_Int))
   }
 
-  def discard(json: JsValue): Unit = {
+  private def discard(json: JsValue): Unit = {
     val g = c.getGameData
     def r = g._1
     def t = g._2
@@ -69,11 +70,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     c.solve(new DoDiscardEvent(cards_sorted))
   }
 
-  def no_discard(): Unit = {
+  private def no_discard(): Unit = {
     c.solve(new DoNoDiscardEvent)
   }
 
-  def no_inject(): Unit = {
+  private def no_inject(): Unit = {
     c.solve(new DoNoInjectEvent)
   }
 
@@ -91,7 +92,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     phase10
   }
 
-  def proceedCommand(cmd: String, json: JsValue): Unit = cmd match {
+  private def proceedCommand(cmd: String, json: JsValue): Unit = cmd match {
     case "switch_cards" => switch_cards(json)
     case "discard" => discard(json)
     case "no_discard" => no_discard()
@@ -100,20 +101,25 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     case _ => ;
   }
 
-  def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, isReload: Boolean): Unit = {
-    val g = c.getGameData
-    def new_r = g._1
-    def new_t = g._2
+  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, isReload: Boolean): Unit = {
+    def inform_all(msg: String): Unit = webSocketReactors.foreach { reactor =>
+      reactor._2.publish(msg)
+    }
+
+    if(lastEvent.isInstanceOf[GameEndedEvent]) {
+      inform_all(json_gameEnded(lastEvent.asInstanceOf[GameEndedEvent].winningPlayer).toString())
+      return
+    }
+
+    val g = c.getState.asInstanceOf[GameRunningControllerStateInterface]
+    def new_r = g.r
+    def new_t = g.t
 
     def publishToOpponent(json: JsValue): Unit = {
       getReactor(c.getPlayers()(new_t.current_player)) match {
         case Some(r) => r.publish(json.toString())
         case None =>
       }
-    }
-
-    def inform_all_of_new_round(): Unit = webSocketReactors.foreach {reactor =>
-        reactor._2.publish(json_newRound(new_r).toString())
     }
 
     def turnEnded(): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player).toString())
@@ -123,7 +129,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).toString)
       case e :NewRoundEvent =>
         if(!isReload)
-          inform_all_of_new_round()
+          inform_all(json_newRound(new_r).toString())
         turnEnded()
         publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent =>
@@ -134,7 +140,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  def process_user_input(cmd: String, json: JsValue, reactor: WebSocketReactor): Unit = {
+  private def process_user_input(cmd: String, json: JsValue, reactor: WebSocketReactor): Unit = {
     val g = c.getGameData
     val t = g._2
     val players = c.getPlayers()
@@ -147,20 +153,25 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  def json_newGame(r:RoundData, players: List[String]): JsObject = JsObject(Seq(
+  private def json_newGame(r:RoundData, players: List[String]): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
     "numberOfPhase" -> JsNumber(r.validators(0).getNumberOfPhase()),
     "phaseDescription" -> JsString(r.validators(0).description),
     "players" -> JsArray(players.map(s => JsString(s))),
     "numberOfPlayers" -> JsNumber(players.size)))
 
-  def json_newRound(r:RoundData): JsObject = JsObject(Seq(
+  def json_gameEnded(winningPlayer: String): JsObject = JsObject(Seq(
+    "event" -> JsString("GameEndedEvent"),
+    "winningPlayer" -> JsString(winningPlayer),
+  ))
+
+  private def json_newRound(r:RoundData): JsObject = JsObject(Seq(
     "event" -> JsString("NewRoundEvent"),
     "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
     "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
     "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)))))
 
-  def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
+  private def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
     "event" -> JsString("PlayersTurnEvent"),
     "activePlayer" -> JsNumber(referringPlayer),
     "newCard" -> cardToJSon(newCard),
@@ -168,17 +179,17 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     cardStashCurrentPlayer(t, referringPlayer),
     discardedStash(t)))
 
-  def json_turnEnded(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+  private def json_turnEnded(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("TurnEndedEvent"),
     cardStashCurrentPlayer(t, referringPlayer),
     discardedStash(t)))
-  def json_discarded(r: RoundData, t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+  private def json_discarded(r: RoundData, t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToDiscardEvent"),
     "activePlayer" -> JsNumber(referringPlayer),
     "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
     cardStashCurrentPlayer(t, referringPlayer),
     discardedStash(t)))
-  def json_inject(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+  private def json_inject(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToInjectEvent"),
     "activePlayer" -> JsNumber(referringPlayer),
     cardStashCurrentPlayer(t, referringPlayer),
@@ -233,7 +244,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     def publish(msg: String)
   }
 
-  class MyWebSocketActor(out: ActorRef) extends Actor {
+  private class MyWebSocketActor(out: ActorRef) extends Actor {
     println("Class created")
     private val reactor = new WebSocketReactor {
       override def publish(msg: String): Unit = sendJsonToClient(msg)

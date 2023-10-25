@@ -151,6 +151,12 @@ function newGame(data) {
     alert(msg)
 }
 
+function gameEnded(winningPlayer) {
+    sessionStorage.clear()
+    alert("Spieler " + winningPlayer + " hat gewonnen")
+    document.location.replace("/")
+}
+
 function update(data) {
     let event = data['event']
     if (event == "GoToDiscardEvent") {
@@ -166,6 +172,8 @@ function update(data) {
         goToInject(data)
     }  else if (event == "NewGameEvent") {
         newGame(data)
+    } else if(event == "GameEndedEvent") {
+        gameEnded(data['winningPlayer'])
     }
 }
 
