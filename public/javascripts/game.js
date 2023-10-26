@@ -1,9 +1,19 @@
+const inputFormSwitch = document.getElementById("inputFormSwitch")
+const inputFormDiscard = document.getElementById("inputFormDiscard")
+const inputFormInject = document.getElementById("inputFormInject")
+const newCardDiv = document.getElementById("newCardDiv")
+const openCardDiv = document.getElementById("openCardDiv")
+const newCardP = document.getElementById("newCardP")
+const openCardP = document.getElementById("openCardP")
+const playerCardsDiv = document.getElementById("playerCards")
+const discardedCardsDiv = document.getElementById("discardedCards")
+const currentPlayer = document.getElementById("currentPlayer")
+
 function get_player_name(idx) {
     return sessionStorage.getItem("player_" + idx)
 }
 
 function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
-    let playerCardsDiv = document.getElementById("playerCards")
     playerCardsDiv.innerHTML = ""
     let rowDiv = document.createElement("div")
     rowDiv.setAttribute("class", "row")
@@ -51,7 +61,6 @@ function radio_buttons_discarded_Cards(i,j,position) {
 }
 
 function discarded_cards(cardStashes, show_radio_buttons) {
-    let discardedCardsDiv = document.getElementById("discardedCards")
     discardedCardsDiv.innerHTML = ""
     for (let i = 0; i < cardStashes.length; i++) {
         let textView = document.createElement("p")
@@ -100,9 +109,11 @@ function new_round_message(data) {
 function turnEnded(data) {
     show_player_cards(data['cardStash'], false, false, data['card_group_size'])
     discarded_cards(data['discardedStash'], false)
-    document.getElementById("inputFormSwitch").hidden = true
-    document.getElementById("inputFormDiscard").hidden = true
-    document.getElementById("inputFormInject").hidden = true
+    inputFormSwitch.hidden = true
+    inputFormDiscard.hidden = true
+    inputFormInject.hidden = true
+    newCardDiv.hidden = true
+    openCardDiv.hidden = true
 }
 
 function playersTurn(data) {
@@ -111,28 +122,32 @@ function playersTurn(data) {
 
     let newCard = data['newCard']
     let openCard = data['openCard']
-    let newCardDiv = document.getElementById("newCard")
-    let openCardDiv = document.getElementById("openCard")
-    newCardDiv.innerHTML = ""
-    openCardDiv.innerHTML = ""
-    newCardDiv.appendChild(drawCard(newCard['value'], newCard['color']))
-    openCardDiv.appendChild(drawCard(openCard['value'], openCard['color']))
+    newCardP.innerHTML = ""
+    openCardP.innerHTML = ""
+    newCardP.appendChild(drawCard(newCard['value'], newCard['color']))
+    openCardP.appendChild(drawCard(openCard['value'], openCard['color']))
 
-    document.getElementById("currentPlayer").innerHTML = get_player_name(data['activePlayer'])
-    document.getElementById("inputFormSwitch").hidden = false
-    document.getElementById("inputFormDiscard").hidden = true
-    document.getElementById("inputFormInject").hidden = true
+    currentPlayer.innerHTML = get_player_name(data['activePlayer'])
+    inputFormSwitch.hidden = false
+    inputFormDiscard.hidden = true
+    inputFormInject.hidden = true
+    newCardDiv.hidden = false
+    openCardDiv.hidden = false
 }
 
 function goToDiscard(data) {
     show_player_cards(data['cardStash'], true, false, data['card_group_size'])
-    document.getElementById("inputFormSwitch").hidden = true
-    document.getElementById("inputFormDiscard").hidden = false
+    inputFormSwitch.hidden = true
+    inputFormDiscard.hidden = false
+    newCardDiv.hidden = true
+    openCardDiv.hidden = true
 }
 
 function goToInject(data) {
-    document.getElementById("inputFormSwitch").hidden = true
-    document.getElementById("inputFormInject").hidden = false
+    inputFormSwitch.hidden = true
+    inputFormInject.hidden = false
+    newCardDiv.hidden = true
+    openCardDiv.hidden = true
     show_player_cards(data['cardStash'], false, true, 0)
     discarded_cards(data['discardedStash'], true)
 }

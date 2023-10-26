@@ -106,9 +106,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       reactor._2.publish(msg)
     }
 
-    if(lastEvent.isInstanceOf[GameEndedEvent]) {
-      inform_all(json_gameEnded(lastEvent.asInstanceOf[GameEndedEvent].winningPlayer).toString())
-      return
+    lastEvent match {
+      case event: GameEndedEvent =>
+        inform_all(json_gameEnded(event.winningPlayer).toString())
+        return
+      case _ =>
     }
 
     val g = c.getState.asInstanceOf[GameRunningControllerStateInterface]
@@ -155,12 +157,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
   private def json_newGame(r:RoundData, players: List[String]): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
-    "numberOfPhase" -> JsNumber(r.validators(0).getNumberOfPhase()),
-    "phaseDescription" -> JsString(r.validators(0).description),
+    "numberOfPhase" -> JsNumber(r.validators.head.getNumberOfPhase()),
+    "phaseDescription" -> JsString(r.validators.head.description),
     "players" -> JsArray(players.map(s => JsString(s))),
     "numberOfPlayers" -> JsNumber(players.size)))
 
-  def json_gameEnded(winningPlayer: String): JsObject = JsObject(Seq(
+  private def json_gameEnded(winningPlayer: String): JsObject = JsObject(Seq(
     "event" -> JsString("GameEndedEvent"),
     "winningPlayer" -> JsString(winningPlayer),
   ))
@@ -231,7 +233,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
   def getReactor(player: String): Option[WebSocketReactor] = webSocketReactors.get(player)
 
-  object MyWebSocketActor {
+  private object MyWebSocketActor {
     def props(out: ActorRef): Props = {
       println("Object created")
       Props(new MyWebSocketActor(out))
@@ -241,7 +243,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   val webSocketReactors = new TreeMap[String, WebSocketReactor]()
   abstract class WebSocketReactor() {
     var name = ""
-    def publish(msg: String)
+    def publish(msg: String): Unit
   }
 
   private class MyWebSocketActor(out: ActorRef) extends Actor {
@@ -278,7 +280,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         }
     }
 
-    def sendJsonToClient(msg: String): Unit = {
+     private def sendJsonToClient(msg: String): Unit = {
       println("Received event from Controller")
       out ! msg
     }
