@@ -1,6 +1,12 @@
 function inject() {
-    let card_to_inject = parseInt(document.querySelector('input[name="card_index"]:checked').value)
-    let target = document.querySelector('input[name="inject_to"]:checked').value.split("_")
+    let card_to_inject_qs = document.querySelector('input[name="card_index"]:checked')
+    let target_qs = document.querySelector('input[name="inject_to"]:checked')
+
+    if(card_to_inject_qs == null || target_qs == null)
+        return
+
+    let card_to_inject = parseInt(card_to_inject_qs.value)
+    let target = target_qs.value.split("_")
     let player_to = parseInt(target[0])
     let group_to = parseInt(target[1])
     let position_to = target[2]
