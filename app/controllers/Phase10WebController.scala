@@ -108,7 +108,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
     lastEvent match {
       case event: GameEndedEvent =>
-        inform_all(json_gameEnded(event.winningPlayer).toString())
+        inform_all(json_gameEnded(event).toString())
         return
       case _ =>
     }
@@ -154,7 +154,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       reactor.publish(json_turnEnded(t, players.indexOf(reactor.name)).toString())
     }
   }
-
   private def json_newGame(r:RoundData, players: List[String]): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
     "numberOfPhase" -> JsNumber(r.validators.head.getNumberOfPhase()),
@@ -162,9 +161,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     "players" -> JsArray(players.map(s => JsString(s))),
     "numberOfPlayers" -> JsNumber(players.size)))
 
-  private def json_gameEnded(winningPlayer: String): JsObject = JsObject(Seq(
+  private def json_gameEnded(e: GameEndedEvent): JsObject = JsObject(Seq(
     "event" -> JsString("GameEndedEvent"),
-    "winningPlayer" -> JsString(winningPlayer),
+    "winningPlayer" -> JsString(e.winningPlayer),
+    "players" -> JsArray(e.players.map(p => JsString(p))),
+    "phases" -> JsArray(e.phases.map(n => JsNumber(n))),
+    "errorPoints" -> JsArray(e.errorPoints.map(n => JsNumber(n)))
   ))
 
   private def json_newRound(r:RoundData): JsObject = JsObject(Seq(

@@ -22,6 +22,7 @@ class PlayerCardDeck(val cards: List[List[Card]]) {
     (new PlayerCardDeck(cards.updated(player, cards(player).updated(index, c))), old)
   }
 
+  def getErrorpoints(idx: Int):Int = cards(idx).map(c => c.errorPoints).sum
   def isEmpty(player:Int) = cards(player).isEmpty
 }
 

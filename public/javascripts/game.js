@@ -153,7 +153,7 @@ function goToInject(data) {
 }
 
 function newGame(data) {
-    let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\nSpieler:"
+    let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
 
     let names = data['players']
     const len = data['numberOfPlayers']
@@ -166,9 +166,20 @@ function newGame(data) {
     alert(msg)
 }
 
-function gameEnded(winningPlayer) {
+function gameEnded(data) {
+    let msg = "Spieler " + data['winningPlayer'] + " hat gewonnen\n"
+
+    const length = sessionStorage.getItem("number_of_players")
+    const phases = data['phases']
+    const errorPoints = data['errorPoints']
+
+    for(let i = 0; i < length; i++) {
+        const player = sessionStorage.getItem("player_" + i)
+        msg += "\n" + player + ": Phase " + phases[i] + "; " + errorPoints[i] + " Fehlerpunkte"
+    }
+
+    alert(msg)
     sessionStorage.clear()
-    alert("Spieler " + winningPlayer + " hat gewonnen")
     document.location.replace("/")
 }
 
@@ -188,7 +199,7 @@ function update(data) {
     }  else if (event == "NewGameEvent") {
         newGame(data)
     } else if(event == "GameEndedEvent") {
-        gameEnded(data['winningPlayer'])
+        gameEnded(data)
     }
 }
 

@@ -21,5 +21,5 @@ class GoToDiscardEvent extends OutputEvent
 class GoToInjectEvent extends OutputEvent
 class TurnEndedEvent(val newCard: Card) extends OutputEvent
 class NewRoundEvent(val newCard: Card) extends OutputEvent
-class GameEndedEvent(val winningPlayer: String) extends OutputEvent
+class GameEndedEvent(val winningPlayer: String, val players: List[String], val phases: List[Int], val errorPoints: List[Int]) extends OutputEvent
 class GameStartedEvent(val newCard: Card) extends OutputEvent

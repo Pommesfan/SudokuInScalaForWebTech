@@ -168,19 +168,36 @@ class InjectControllerState(pPlayers: List[String], pR:RoundData, pT:TurnData) e
       (new SwitchCardControllerState(players, r, newTurnDataNextPlayer(controller), newCard), new TurnEndedEvent(newCard))
   }
 
+  private def getWinningPlayer(playersHaveDiscarded: List[Boolean], newErrorpoints: List[Int]): Int = {
+    r.validators.zipWithIndex
+      .filter(v => v._1.getNumberOfPhase() == 10 && playersHaveDiscarded(v._2))
+      .map(v => v._2)
+      .minBy(idx => newErrorpoints(idx))
+  }
+
   private def handle_round_ended(controller: Controller, newCard: Card): (ControllerStateInterface, OutputEvent) = {
     def playersHaveDiscarded = players.indices.map(idx => !t.discardedCardDeck.isEmpty(idx)).toList
 
-    if (r.validators(currentPlayer).getNumberOfPhase() == 10) {
+    val (newDeck, _) = t.playerCardDeck.removeSingleCard(0, currentPlayer)
+
+    if (r.validators.zipWithIndex.find(v => v._1.getNumberOfPhase() == 10 && playersHaveDiscarded(v._2)).nonEmpty) {
       controller.reset_undo_manager()
-      (controller.getInitialState(), new GameEndedEvent(players(currentPlayer)))
-    } else {
-      (new SwitchCardControllerState(
+      val newErrorPoints = r.errorPoints.zipWithIndex.map((e) => e._1 + newDeck.getErrorpoints(e._2))
+      val event = new GameEndedEvent(
+        players(getWinningPlayer(playersHaveDiscarded, newErrorPoints)),
         players,
-        controller.createNewRound(r, t.playerCardDeck.removeSingleCard(0, currentPlayer)._1.cards, playersHaveDiscarded),
+        r.validators.zipWithIndex.map(v=>
+          if (playersHaveDiscarded(v._2)) v._1.getNumberOfPhase()
+          else v._1.getNumberOfPhase() - 1),
+        newErrorPoints) //add new error points
+      (controller.getInitialState(), event)
+    } else {
+      val newState = new SwitchCardControllerState(
+        players,
+        controller.createNewRound(r, newDeck.cards, playersHaveDiscarded),
         controller.createInitialTurnData(players.size, controller.nextPlayer(t.current_player, players.size)),
-        newCard),
-        new NewRoundEvent(newCard))
+        newCard)
+      (newState, new NewRoundEvent(newCard))
     }
   }
   
