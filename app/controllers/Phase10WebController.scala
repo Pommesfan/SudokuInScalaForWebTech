@@ -2,7 +2,6 @@ package controllers
 
 import model.{Card, RoundData, TurnData}
 import play.api.libs.json.{JsArray, JsNull, JsNumber, JsObject, JsString, JsValue, Json}
-
 import javax.inject._
 import play.api.mvc._
 import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameEndedEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, Phase10WebUtils, ProgramStartedEvent, TurnEndedEvent, Utils}
@@ -10,7 +9,6 @@ import play.api.libs.streams.ActorFlow
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.actor._
-
 import scala.collection.mutable.TreeMap
 
 
@@ -109,6 +107,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     lastEvent match {
       case event: GameEndedEvent =>
         inform_all(json_gameEnded(event).toString())
+        for(r <- webSocketReactors)
+        webSocketReactors.clear()
         return
       case _ =>
     }
@@ -246,12 +246,15 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   abstract class WebSocketReactor() {
     var name = ""
     def publish(msg: String): Unit
+    def close(): Unit
   }
 
   private class MyWebSocketActor(out: ActorRef) extends Actor {
     println("Class created")
     private val reactor = new WebSocketReactor {
       override def publish(msg: String): Unit = sendJsonToClient(msg)
+
+      override def close(): Unit = out ! PoisonPill
     }
 
     private def login_player(json: JsValue): Unit = {
