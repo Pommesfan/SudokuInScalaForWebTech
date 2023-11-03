@@ -107,7 +107,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     lastEvent match {
       case event: GameEndedEvent =>
         inform_all(json_gameEnded(event).toString())
-        for(r <- webSocketReactors)
+        for(r <- webSocketReactors) r._2.close()
         webSocketReactors.clear()
         return
       case _ =>
