@@ -116,23 +116,24 @@ class DiscardControllerState(pPlayers: List[String], pR:RoundData, pT:TurnData) 
 
   private def nextPlayerOnly(c:Controller) = TurnData(c.nextPlayer(t.current_player, players.size), t.playerCardDeck, t.openCard, t.discardedCardDeck)
 
-  def discardCards(cardIndices: List[List[Int]], controller:Controller): (GameRunningControllerStateInterface, OutputEvent) = {
-    def newTurnData:TurnData =
+  def discardCards(cardIndices: List[List[Int]], controller: Controller): (GameRunningControllerStateInterface, OutputEvent) = {
+    val (newTurnData, success): (TurnData, Boolean) =
       if (r.validators(currentPlayer).validate(t.playerCardDeck.cards(currentPlayer), cardIndices)) {
         val res = t.playerCardDeck.removeCards(cardIndices, currentPlayer)
         def newPlayerCardDeck = res._1
         def removedCards = res._2
         def newDiscardedCardDeck = t.discardedCardDeck.setCards(currentPlayer, removedCards)
-        TurnData(controller.nextPlayer(currentPlayer, players.size), newPlayerCardDeck, t.openCard, newDiscardedCardDeck)
-      } else
-        nextPlayerOnly(controller)
+        (TurnData(controller.nextPlayer(currentPlayer, players.size), newPlayerCardDeck, t.openCard, newDiscardedCardDeck), true)
+      } else {
+        (nextPlayerOnly(controller), false)
+      }
     val newCard = controller.createCard
-    (new SwitchCardControllerState(players, r, newTurnData, newCard), new TurnEndedEvent(newCard))
+    (new SwitchCardControllerState(players, r, newTurnData, newCard), new TurnEndedEvent(newCard, success))
   }
 
   def skipDiscard(controller:Controller): (SwitchCardControllerState, TurnEndedEvent) = {
     val newCard = controller.createCard
-    (new SwitchCardControllerState(players, r, nextPlayerOnly(controller), newCard), new TurnEndedEvent(newCard))
+    (new SwitchCardControllerState(players, r, nextPlayerOnly(controller), newCard), new TurnEndedEvent(newCard, true))
   }
 }
 
@@ -165,7 +166,7 @@ class InjectControllerState(pPlayers: List[String], pR:RoundData, pT:TurnData) e
       def newTurnData = TurnData(t.current_player, newPlayerCardDeck, t.openCard, newDiscardedDeck)
       (new InjectControllerState(players, r, newTurnData), new GoToInjectEvent)
     } else
-      (new SwitchCardControllerState(players, r, newTurnDataNextPlayer(controller), newCard), new TurnEndedEvent(newCard))
+      (new SwitchCardControllerState(players, r, newTurnDataNextPlayer(controller), newCard), new TurnEndedEvent(newCard, false))
   }
 
   private def getWinningPlayer(playersHaveDiscarded: List[Boolean], newErrorpoints: List[Int]): Int = {
@@ -197,12 +198,12 @@ class InjectControllerState(pPlayers: List[String], pR:RoundData, pT:TurnData) e
         controller.createNewRound(r, newDeck.cards, playersHaveDiscarded),
         controller.createInitialTurnData(players.size, controller.nextPlayer(t.current_player, players.size)),
         newCard)
-      (newState, new NewRoundEvent(newCard))
+      (newState, new NewRoundEvent(newCard, true))
     }
   }
   
   def skipInject(controller:Controller): (SwitchCardControllerState, TurnEndedEvent) = {
     val newCard = controller.createCard
-    (new SwitchCardControllerState(players, r, newTurnDataNextPlayer(controller), newCard), new TurnEndedEvent(newCard))
+    (new SwitchCardControllerState(players, r, newTurnDataNextPlayer(controller), newCard), new TurnEndedEvent(newCard, true))
   }
 }
