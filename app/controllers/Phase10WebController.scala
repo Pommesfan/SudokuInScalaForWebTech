@@ -190,9 +190,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   private def json_discarded(r: RoundData, t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToDiscardEvent"),
     "activePlayer" -> JsNumber(referringPlayer),
-    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
-    cardStashCurrentPlayer(t, referringPlayer),
-    discardedStash(t)))
+    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size)))
   private def json_inject(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToInjectEvent"),
     "activePlayer" -> JsNumber(referringPlayer),

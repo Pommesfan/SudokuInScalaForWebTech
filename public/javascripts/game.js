@@ -9,6 +9,14 @@ const playerCardsDiv = document.getElementById("playerCards")
 const discardedCardsDiv = document.getElementById("discardedCards")
 const currentPlayer = document.getElementById("currentPlayer")
 
+var playerCards = []
+var discardedCards = []
+var newCard = null
+var openCard = null
+var selectedPlayerCard = null
+var selectedLocationToInject = null
+var switchMode = null
+
 function get_player_name(idx) {
     return sessionStorage.getItem("player_" + idx)
 }
@@ -107,8 +115,10 @@ function new_round_message(data) {
 }
 
 function turnEnded(data) {
-    show_player_cards(data['cardStash'], false, false, data['card_group_size'])
-    discarded_cards(data['discardedStash'], false)
+    playerCards = data['cardStash']
+    discardedCards = data['discardedStash']
+    show_player_cards(playerCards, false, false, data['card_group_size'])
+    discarded_cards(discardedCards, false)
     inputFormSwitch.hidden = true
     inputFormDiscard.hidden = true
     inputFormInject.hidden = true
@@ -117,11 +127,14 @@ function turnEnded(data) {
 }
 
 function playersTurn(data) {
-    show_player_cards(data['cardStash'], false, true, data['card_group_size'])
-    discarded_cards(data['discardedStash'], false)
+    playerCards = data['cardStash']
+    discardedCards = data['discardedStash']
+    newCard = data['newCard']
+    openCard = data['openCard']
 
-    let newCard = data['newCard']
-    let openCard = data['openCard']
+    show_player_cards(playerCards, false, true, data['card_group_size'])
+    discarded_cards(discardedCards, false)
+
     newCardP.innerHTML = ""
     openCardP.innerHTML = ""
     newCardP.appendChild(drawCard(newCard['value'], newCard['color']))
@@ -136,7 +149,8 @@ function playersTurn(data) {
 }
 
 function goToDiscard(data) {
-    show_player_cards(data['cardStash'], true, false, data['card_group_size'])
+    playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
+    show_player_cards(playerCards, true, false, data['card_group_size'])
     inputFormSwitch.hidden = true
     inputFormDiscard.hidden = false
     newCardDiv.hidden = true
@@ -148,8 +162,10 @@ function goToInject(data) {
     inputFormInject.hidden = false
     newCardDiv.hidden = true
     openCardDiv.hidden = true
-    show_player_cards(data['cardStash'], false, true, 0)
-    discarded_cards(data['discardedStash'], true)
+    playerCards = data['cardStash']
+    discardedCards = data['discardedStash']
+    show_player_cards(playerCards, false, true, 0)
+    discarded_cards(discardedCards, true)
 }
 
 function newGame(data) {
