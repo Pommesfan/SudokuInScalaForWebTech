@@ -103,7 +103,8 @@ function discarded_cards(cardStashes, show_radio_buttons) {
     }
 }
 
-function new_round_message(data) {
+function new_round(data) {
+    playerCards = data['cardStash']
     let s = "Neue Runde:"
     const errorPoints = data['errorPoints']
     const number_of_phase = data['numberOfPhase']
@@ -111,12 +112,10 @@ function new_round_message(data) {
     for(let i = 0; i < sessionStorage.getItem("number_of_players"); i++) {
         s += ("\n" + get_player_name(i) + ": " + errorPoints[i] + " Fehlerpunkte; Phase: " + number_of_phase[i] + ": " + phase_description[i])
     }
-    return s
+    alert(s)
 }
 
 function turnEnded(data) {
-    playerCards = data['cardStash']
-    discardedCards = data['discardedStash']
     show_player_cards(playerCards, false, false, data['card_group_size'])
     discarded_cards(discardedCards, false)
     inputFormSwitch.hidden = true
@@ -127,8 +126,6 @@ function turnEnded(data) {
 }
 
 function playersTurn(data) {
-    playerCards = data['cardStash']
-    discardedCards = data['discardedStash']
     newCard = data['newCard']
     openCard = data['openCard']
 
@@ -169,8 +166,8 @@ function goToInject(data) {
 }
 
 function newGame(data) {
+    playerCards = data['cardStash']
     let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
-
     let names = data['players']
     const len = data['numberOfPlayers']
     for(let i = 0; i < len; i++) {
@@ -204,10 +201,10 @@ function update(data) {
     if (event == "GoToDiscardEvent") {
         goToDiscard(data)
     } else if(event == "NewRoundEvent") {
-        alert(new_round_message(data))
-    } else if(data['event'] == "TurnEndedEvent") {
+        new_round(data)
+    } else if(event == "TurnEndedEvent") {
         turnEnded(data)
-    } else if(data['event'] == "PlayersTurnEvent") {
+    } else if(event == "PlayersTurnEvent") {
         alert("Du bist dran!")
         playersTurn(data)
     } else if (event == "GoToInjectEvent") {
