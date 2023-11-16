@@ -1,12 +1,15 @@
 function discard() {
     let values = ""
     let i = 0
+
     while(document.getElementById("inlineCheckbox"+i+"_0") != null) {
+        let indices_in_group = [] //for local changes
         let atLeastOne = false
         for (let j = 0; j < 10; j++) {
             let check_box = document.getElementById("inlineCheckbox"+i+"_"+j)
             if (check_box.checked) {
                 values += (j + " ")
+                indices_in_group.push(j)
                 atLeastOne = true
             }
         }
@@ -15,6 +18,7 @@ function discard() {
         }
         i += 1
         values += ": "
+        discardedCardIndices.push(indices_in_group) //for local changes
     }
     //remove the separators at the and which are created in every iteration
     values = values.slice(0, values.length - 2)

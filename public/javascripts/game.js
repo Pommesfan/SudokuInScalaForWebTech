@@ -10,12 +10,14 @@ const discardedCardsDiv = document.getElementById("discardedCards")
 const currentPlayer = document.getElementById("currentPlayer")
 
 var playerCards = []
+var discardedCardIndices = []
 var discardedCards = []
 var newCard = null
 var openCard = null
 var selectedPlayerCard = null
 var selectedLocationToInject = null
 var switchMode = null
+var cardGroupSize = 0
 
 function get_player_name(idx) {
     return sessionStorage.getItem("player_" + idx)
@@ -115,8 +117,43 @@ function new_round(data) {
     alert(s)
 }
 
+function load_discarded_cards() {
+    //copy player cards as discarded
+    let discarded_card_current_player = []
+    for(let i = 0; i < discardedCardIndices.length; i++) {
+        let indices = discardedCardIndices[i]
+        let cardGroup = []
+        for(let j = 0; j < indices.length; j++) {
+            let idx = indices[j]
+            cardGroup.push(playerCards[idx])
+        }
+        discarded_card_current_player.push(cardGroup)
+    }
+    discardedCards.push(discarded_card_current_player)
+
+    //remove player cards
+    let playerCardIndices = inverted_idx_list(10, discardedCardIndices.flat())
+
+    let playerCardsNew = []
+    for(let i = 0; i < playerCardIndices.length; i++) {
+        playerCardsNew.push(playerCards[playerCardIndices[i]])
+    }
+    playerCards = playerCardsNew
+
+    discardedCardIndices = []
+}
+
 function turnEnded(data) {
-    show_player_cards(playerCards, false, false, data['card_group_size'])
+    let success = data['success']
+    if(success) {
+        if (discardedCardIndices.length > 0) {
+            load_discarded_cards()
+        }
+    } else {
+        alert("Ungültiger Spielzug")
+    }
+
+    show_player_cards(playerCards, false, false, cardGroupSize)
     discarded_cards(discardedCards, false)
     inputFormSwitch.hidden = true
     inputFormDiscard.hidden = true
@@ -128,8 +165,9 @@ function turnEnded(data) {
 function playersTurn(data) {
     newCard = data['newCard']
     openCard = data['openCard']
+    cardGroupSize = data['card_group_size']
 
-    show_player_cards(playerCards, false, true, data['card_group_size'])
+    show_player_cards(playerCards, false, true, cardGroupSize)
     discarded_cards(discardedCards, false)
 
     newCardP.innerHTML = ""

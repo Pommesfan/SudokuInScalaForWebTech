@@ -99,3 +99,13 @@ function drawCard(number, color) {
     cutEdge(100, 125, 100, 150, 75, 150)
     return c
 }
+
+function inverted_idx_list(n, indices) {
+    let res = []
+    for(let i = 0; i < n; i++) {
+        if(!indices.includes(i)) {
+            res.push(i)
+        }
+    }
+    return res
+}

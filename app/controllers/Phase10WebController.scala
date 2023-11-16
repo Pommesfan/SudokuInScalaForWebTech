@@ -1,7 +1,7 @@
 package controllers
 
 import model.{Card, RoundData, TurnData}
-import play.api.libs.json.{JsArray, JsNull, JsNumber, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsBoolean, JsNull, JsNumber, JsObject, JsString, JsValue, Json}
 import javax.inject._
 import play.api.mvc._
 import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameEndedEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, Phase10WebUtils, ProgramStartedEvent, TurnEndedEvent, Utils}
@@ -106,7 +106,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     wr.publish(json_newRound(r, t, idx).toString())
   }
 
-  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, isReload: Boolean): Unit = {
+  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String): Unit = {
     def inform_all(msg: String): Unit = webSocketReactors.foreach { reactor =>
       reactor._2.publish(msg)
     }
@@ -132,18 +132,18 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       }
     }
 
-    def turnEnded(): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player).toString())
+    def turnEnded(success: Boolean): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player, success).toString())
 
     lastEvent match {
       case e :GameStartedEvent =>
         reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).toString)
       case e :NewRoundEvent =>
-        if(!isReload)
+        if(cmd == "getStatus")
           sendNewRound(players, new_r,new_t)
-        turnEnded()
+        turnEnded(true)
         publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent =>
-        turnEnded()
+        turnEnded(e.success)
         publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case _ :GoToDiscardEvent => reactor.publish(json_discarded(new_r,new_t,new_t.current_player).toString())
       case _ :GoToInjectEvent => reactor.publish(json_inject(new_t, new_t.current_player).toString())
@@ -157,9 +157,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     //block action of player who is not at turn
     if (reactor.name == players(t.current_player)) {
       proceedCommand(cmd, json)
-      proceedOutput(t, reactor, cmd=="getStatus")
+      proceedOutput(t, reactor, cmd)
     } else {
-      reactor.publish(json_turnEnded(t, players.indexOf(reactor.name)).toString())
+      reactor.publish(json_turnEnded(t, players.indexOf(reactor.name), true).toString())
     }
   }
   private def json_newGame(r:RoundData, players: List[String], t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
@@ -192,8 +192,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     "openCard" -> cardToJSon(t.openCard),
     discardedStash(t)))
 
-  private def json_turnEnded(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+  private def json_turnEnded(t: TurnData, referringPlayer:Int, success: Boolean): JsObject = JsObject(Seq(
     "event" -> JsString("TurnEndedEvent"),
+    "success" -> JsBoolean(success),
     discardedStash(t)))
   private def json_discarded(r: RoundData, t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToDiscardEvent"),
