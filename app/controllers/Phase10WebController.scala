@@ -125,11 +125,15 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     def new_r = g.r
     def new_t = g.t
 
-    def publishToOpponent(json: JsValue): Unit = {
+    def publishToNext(json: JsValue): Unit = {
       getReactor(c.getPlayers()(new_t.current_player)) match {
         case Some(r) => r.publish(json.toString())
         case None =>
       }
+    }
+
+    def publishToOpponents(json: JsValue) = {
+      webSocketReactors.filter(wsr => wsr._1 != players(old_t.current_player)).foreach(wsr => wsr._2.publish(json.toString()))
     }
 
     def turnEnded(success: Boolean): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player, success).toString())
@@ -141,10 +145,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         if(cmd == "getStatus")
           sendNewRound(players, new_r,new_t)
         turnEnded(true)
-        publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
+        publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent =>
+        if(cmd == "discard" && e.success)
+          publishToOpponents(json_player_has_discared(old_t.current_player, new_t))
         turnEnded(e.success)
-        publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
+        publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case _ :GoToDiscardEvent => reactor.publish(json_discarded(new_r,new_t,new_t.current_player).toString())
       case _ :GoToInjectEvent => reactor.publish(json_inject(new_t, new_t.current_player).toString())
     }
@@ -162,6 +168,13 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       reactor.publish(json_turnEnded(t, players.indexOf(reactor.name), true).toString())
     }
   }
+  private def json_player_has_discared(referringPlayer: Int, t: TurnData): JsObject = JsObject(Seq(
+    "event" -> JsString("PlayerHasDiscarded"),
+    "player" -> JsNumber(referringPlayer),
+    "cards" -> JsArray(t.discardedCardDeck.cards(referringPlayer).get.map(cs =>
+      JsArray(cs.map(c => cardToJSon(c)))
+    ))))
+
   private def json_newGame(r:RoundData, players: List[String], t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
     "numberOfPhase" -> JsNumber(r.validators.head.getNumberOfPhase()),

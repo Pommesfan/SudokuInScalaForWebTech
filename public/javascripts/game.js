@@ -11,7 +11,7 @@ const currentPlayer = document.getElementById("currentPlayer")
 
 var playerCards = []
 var discardedCardIndices = []
-var discardedCards = []
+var discardedCards = null
 var newCard = null
 var openCard = null
 var selectedPlayerCard = null
@@ -106,12 +106,14 @@ function discarded_cards(cardStashes, show_radio_buttons) {
 }
 
 function new_round(data) {
+    const number_of_players= sessionStorage.getItem("number_of_players")
+    discardedCards = new Array(parseInt(number_of_players)).fill(null)
     playerCards = data['cardStash']
     let s = "Neue Runde:"
     const errorPoints = data['errorPoints']
     const number_of_phase = data['numberOfPhase']
     const phase_description = data['phaseDescription']
-    for(let i = 0; i < sessionStorage.getItem("number_of_players"); i++) {
+    for(let i = 0; i < number_of_players; i++) {
         s += ("\n" + get_player_name(i) + ": " + errorPoints[i] + " Fehlerpunkte; Phase: " + number_of_phase[i] + ": " + phase_description[i])
     }
     alert(s)
@@ -129,7 +131,7 @@ function load_discarded_cards() {
         }
         discarded_card_current_player.push(cardGroup)
     }
-    discardedCards.push(discarded_card_current_player)
+    discardedCards[sessionStorage.getItem("thisPlayerIdx")] = discarded_card_current_player
 
     //remove player cards
     let playerCardIndices = inverted_idx_list(10, discardedCardIndices.flat())
@@ -207,12 +209,18 @@ function newGame(data) {
     playerCards = data['cardStash']
     let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
     let names = data['players']
-    const len = data['numberOfPlayers']
-    for(let i = 0; i < len; i++) {
-        sessionStorage.setItem("player_" + i, names[i])
+    const number_of_players = data['numberOfPlayers']
+    const this_player = sessionStorage.getItem("thisPlayer")
+    for(let i = 0; i < number_of_players; i++) {
+        let name = names[i]
+        sessionStorage.setItem("player_" + i, name)
+        if(name == this_player) {
+            sessionStorage.setItem("thisPlayerIdx", i)
+        }
         msg += "\n" + names[i]
     }
-    sessionStorage.setItem("number_of_players", len)
+    sessionStorage.setItem("number_of_players", number_of_players)
+    discardedCards = new Array(parseInt(number_of_players)).fill(null)
 
     alert(msg)
 }
@@ -234,6 +242,12 @@ function gameEnded(data) {
     document.location.replace("/")
 }
 
+function playerHasDiscarded(data) {
+    const playerTo = data['player']
+    discardedCards[playerTo] = data['cards']
+    discarded_cards(discardedCards, false)
+}
+
 function update(data) {
     let event = data['event']
     if (event == "GoToDiscardEvent") {
@@ -251,6 +265,8 @@ function update(data) {
         newGame(data)
     } else if(event == "GameEndedEvent") {
         gameEnded(data)
+    } else if(event == "PlayerHasDiscarded") {
+        playerHasDiscarded(data)
     }
 }
 
