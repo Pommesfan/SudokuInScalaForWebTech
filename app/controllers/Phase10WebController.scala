@@ -142,7 +142,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case e :GameStartedEvent =>
         reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).toString)
       case e :NewRoundEvent =>
-        if(cmd == "getStatus")
+        if(cmd != "getStatus")
           sendNewRound(players, new_r,new_t)
         turnEnded(true)
         publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
@@ -181,6 +181,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     "phaseDescription" -> JsString(r.validators.head.description),
     "players" -> JsArray(players.map(s => JsString(s))),
     "numberOfPlayers" -> JsNumber(players.size),
+    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
     cardStashCurrentPlayer(t, referringPlayer)))
 
   private def json_gameEnded(e: GameEndedEvent): JsObject = JsObject(Seq(
@@ -196,6 +197,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
     "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
     "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n))),
+    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
     cardStashCurrentPlayer(t, referringPlayer)))
 
   private def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
@@ -211,8 +213,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     discardedStash(t)))
   private def json_discarded(r: RoundData, t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToDiscardEvent"),
-    "activePlayer" -> JsNumber(referringPlayer),
-    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size)))
+    "activePlayer" -> JsNumber(referringPlayer)))
   private def json_inject(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToInjectEvent"),
     "activePlayer" -> JsNumber(referringPlayer),

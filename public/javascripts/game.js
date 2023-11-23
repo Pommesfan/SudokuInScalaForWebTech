@@ -11,11 +11,11 @@ const currentPlayer = document.getElementById("currentPlayer")
 
 var playerCards = []
 var discardedCardIndices = []
-var discardedCards = null
+var discardedCards = []
 var newCard = null
 var openCard = null
 var selectedPlayerCard = null
-var selectedLocationToInject = null
+var injectTo = null
 var switchMode = null
 var cardGroupSize = 0
 
@@ -109,6 +109,8 @@ function new_round(data) {
     const number_of_players= sessionStorage.getItem("number_of_players")
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
     playerCards = data['cardStash']
+    cardGroupSize = data['card_group_size']
+
     let s = "Neue Runde:"
     const errorPoints = data['errorPoints']
     const number_of_phase = data['numberOfPhase']
@@ -135,14 +137,23 @@ function load_discarded_cards() {
 
     //remove player cards
     let playerCardIndices = inverted_idx_list(10, discardedCardIndices.flat())
-
-    let playerCardsNew = []
-    for(let i = 0; i < playerCardIndices.length; i++) {
-        playerCardsNew.push(playerCards[playerCardIndices[i]])
-    }
-    playerCards = playerCardsNew
-
+    playerCards = map_cards(playerCardIndices, playerCards)
     discardedCardIndices = []
+}
+
+function load_injected_card() {
+    let idx = injectTo.playerCard
+    let card = playerCards[idx]
+    let stashTo = discardedCards[injectTo.playerTo][injectTo.groupTo]
+    let position_to = injectTo.positionTo
+    if(position_to == "FRONT") {
+        stashTo.unshift(card)
+    } else if(position_to == "AFTER") {
+        stashTo.push(card)
+    }
+    injectTo = null
+    let inverted_idx = inverted_idx_list(playerCards.length, [idx])
+    playerCards = map_cards(inverted_idx, playerCards)
 }
 
 function turnEnded(data) {
@@ -167,7 +178,6 @@ function turnEnded(data) {
 function playersTurn(data) {
     newCard = data['newCard']
     openCard = data['openCard']
-    cardGroupSize = data['card_group_size']
 
     show_player_cards(playerCards, false, true, cardGroupSize)
     discarded_cards(discardedCards, false)
@@ -185,28 +195,37 @@ function playersTurn(data) {
     openCardDiv.hidden = false
 }
 
-function goToDiscard(data) {
+function goToDiscard() {
     playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
-    show_player_cards(playerCards, true, false, data['card_group_size'])
+    show_player_cards(playerCards, true, false, cardGroupSize)
     inputFormSwitch.hidden = true
     inputFormDiscard.hidden = false
     newCardDiv.hidden = true
     openCardDiv.hidden = true
 }
 
-function goToInject(data) {
+function goToInject() {
+    if(selectedPlayerCard != null) {
+        playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
+        selectedPlayerCard = null
+    }
     inputFormSwitch.hidden = true
     inputFormInject.hidden = false
     newCardDiv.hidden = true
     openCardDiv.hidden = true
-    playerCards = data['cardStash']
-    discardedCards = data['discardedStash']
-    show_player_cards(playerCards, false, true, 0)
+
+    if(injectTo != null) {
+        load_injected_card()
+    }
+
+    show_player_cards(playerCards, false, true, cardGroupSize)
     discarded_cards(discardedCards, true)
 }
 
 function newGame(data) {
     playerCards = data['cardStash']
+    cardGroupSize = data['card_group_size']
+
     let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
     let names = data['players']
     const number_of_players = data['numberOfPlayers']
@@ -251,7 +270,7 @@ function playerHasDiscarded(data) {
 function update(data) {
     let event = data['event']
     if (event == "GoToDiscardEvent") {
-        goToDiscard(data)
+        goToDiscard()
     } else if(event == "NewRoundEvent") {
         new_round(data)
     } else if(event == "TurnEndedEvent") {
@@ -260,7 +279,7 @@ function update(data) {
         alert("Du bist dran!")
         playersTurn(data)
     } else if (event == "GoToInjectEvent") {
-        goToInject(data)
+        goToInject()
     }  else if (event == "NewGameEvent") {
         newGame(data)
     } else if(event == "GameEndedEvent") {

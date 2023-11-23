@@ -109,3 +109,20 @@ function inverted_idx_list(n, indices) {
     }
     return res
 }
+
+function map_cards(playerCardIndices, cards) {
+    let res = []
+    for(let i = 0; i < playerCardIndices.length; i++) {
+        res.push(cards[playerCardIndices[i]])
+    }
+    return res
+}
+
+class InjectCardData {
+    constructor(playerCard, playerTo, groupTo, positionTo) {
+        this.playerCard = playerCard
+        this.playerTo = playerTo
+        this.groupTo = groupTo
+        this.positionTo = positionTo
+    }
+}
