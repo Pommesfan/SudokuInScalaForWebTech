@@ -269,6 +269,22 @@ function playerHasDiscarded(data) {
 
 function update(data) {
     let event = data['event']
+
+    function playerHasInjected(data) {
+        let idxPlayerTo = data["playerTo"]
+        let idxStashTo = data["stashTo"]
+        let position = data["position"]
+        let card = data["card"]
+
+        let stashTo = discardedCards[idxPlayerTo][idxStashTo]
+        if (position == INJECT_TO_FRONT) {
+            stashTo.unshift(card)
+        } else if(position == INJECT_AFTER) {
+            stashTo.push(card)
+        }
+        discarded_cards(discardedCards, true)
+    }
+
     if (event == "GoToDiscardEvent") {
         goToDiscard()
     } else if(event == "NewRoundEvent") {
@@ -286,6 +302,8 @@ function update(data) {
         gameEnded(data)
     } else if(event == "PlayerHasDiscarded") {
         playerHasDiscarded(data)
+    } else if(event == "PlayerHasInjected") {
+        playerHasInjected(data)
     }
 }
 

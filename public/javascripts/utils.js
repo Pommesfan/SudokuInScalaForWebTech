@@ -126,3 +126,6 @@ class InjectCardData {
         this.positionTo = positionTo
     }
 }
+
+const INJECT_TO_FRONT = 1
+const INJECT_AFTER = 2

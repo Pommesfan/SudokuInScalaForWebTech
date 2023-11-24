@@ -4,14 +4,13 @@ import model.{Card, RoundData, TurnData}
 import play.api.libs.json.{JsArray, JsBoolean, JsNull, JsNumber, JsObject, JsString, JsValue, Json}
 import javax.inject._
 import play.api.mvc._
-import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameEndedEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, Phase10WebUtils, ProgramStartedEvent, TurnEndedEvent, Utils}
+import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameEndedEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, InputEvent, NewRoundEvent, Observer, OutputEvent, Phase10WebUtils, ProgramStartedEvent, TurnEndedEvent, Utils}
 import play.api.libs.streams.ActorFlow
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.actor._
+import play.api.libs.json
 import scala.collection.mutable.TreeMap
-
-
 
 @Singleton
 class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)  extends AbstractController(cc) with Observer {
@@ -52,37 +51,47 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     Ok("{}")
   }
 
-  private def switch_cards(json: JsValue): Unit = {
+  private def switch_cards(json: JsValue): InputEvent = {
     val mode = json("mode").asInstanceOf[JsString].value
     val index = json("index").asInstanceOf[JsNumber].value.toInt
     def mode_to_Int = if (mode == "new") Utils.NEW_CARD else if (mode == "open") Utils.OPENCARD else -1
-    c.solve(new DoSwitchCardEvent(index, mode_to_Int))
+    val evt = new DoSwitchCardEvent(index, mode_to_Int)
+    c.solve(evt)
+    evt
   }
 
-  private def discard(json: JsValue): Unit = {
+  private def discard(json: JsValue): InputEvent= {
     val g = c.getGameData
     def r = g._1
     def t = g._2
     val cards = json("cards").asInstanceOf[JsString].value
     val cards_sorted = Phase10WebUtils.sort_sequences(Utils.makeGroupedIndexList(cards), r, t)
-    c.solve(new DoDiscardEvent(cards_sorted))
+    val evt = new DoDiscardEvent(cards_sorted)
+    c.solve(evt)
+    evt
   }
 
-  private def no_discard(): Unit = {
-    c.solve(new DoNoDiscardEvent)
+  private def no_discard(): InputEvent = {
+    val evt = new DoNoDiscardEvent
+    c.solve(evt)
+    evt
   }
 
-  private def no_inject(): Unit = {
-    c.solve(new DoNoInjectEvent)
+  private def no_inject(): InputEvent = {
+    val evt = new DoNoInjectEvent
+    c.solve(evt)
+    evt
   }
 
-  def inject(json: JsValue): Unit = {
+  def inject(json: JsValue): InputEvent = {
     val card_to_inject = json("card_to_inject").asInstanceOf[JsNumber].value.toInt
     val player_to = json("player_to").asInstanceOf[JsNumber].value.toInt
     val group_to = json("group_to").asInstanceOf[JsNumber].value.toInt
     val position_to = json("position_to").asInstanceOf[JsString].value
     def position_to_Int = if (position_to == "FRONT") Utils.INJECT_TO_FRONT else if (position_to == "AFTER") Utils.INJECT_AFTER else -1
-    c.solve(new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int))
+    val evt = new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int)
+    c.solve(evt)
+    evt
   }
 
   def reset(): Action[AnyContent] = {
@@ -90,13 +99,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     phase10
   }
 
-  private def proceedCommand(cmd: String, json: JsValue): Unit = cmd match {
-    case "switch_cards" => switch_cards(json)
-    case "discard" => discard(json)
-    case "no_discard" => no_discard()
-    case "inject" => inject(json)
-    case "no_inject" => no_inject()
-    case _ => ;
+  private def proceedCommand(cmd: String, json: JsValue): Option[InputEvent] = cmd match {
+    case "switch_cards" => Some(switch_cards(json))
+    case "discard" => Some(discard(json))
+    case "no_discard" => Some(no_discard())
+    case "inject" => Some(inject(json))
+    case "no_inject" => Some(no_inject())
+    case "getStatus" => None
+    case _ => throw new Exception("No such Command");
   }
 
   private def sendNewRound(players: List[String], r:RoundData, t:TurnData) = players.zipWithIndex.foreach { p =>
@@ -106,7 +116,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     wr.publish(json_newRound(r, t, idx).toString())
   }
 
-  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String): Unit = {
+  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent]): Unit = {
     def inform_all(msg: String): Unit = webSocketReactors.foreach { reactor =>
       reactor._2.publish(msg)
     }
@@ -124,6 +134,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val g = c.getState.asInstanceOf[GameRunningControllerStateInterface]
     def new_r = g.r
     def new_t = g.t
+    val is_get_status = cmd == "getStatus"
 
     def publishToNext(json: JsValue): Unit = {
       getReactor(c.getPlayers()(new_t.current_player)) match {
@@ -142,7 +153,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case e :GameStartedEvent =>
         reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).toString)
       case e :NewRoundEvent =>
-        if(cmd != "getStatus")
+        if(!is_get_status)
           sendNewRound(players, new_r,new_t)
         turnEnded(true)
         publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
@@ -152,7 +163,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         turnEnded(e.success)
         publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case _ :GoToDiscardEvent => reactor.publish(json_discarded(new_r,new_t,new_t.current_player).toString())
-      case _ :GoToInjectEvent => reactor.publish(json_inject(new_t, new_t.current_player).toString())
+      case _ :GoToInjectEvent => {
+        reactor.publish(json_inject(new_t, new_t.current_player).toString())
+        if (cmd == "inject" && inputEvent.nonEmpty) {
+          publishToOpponents(json_player_has_injected(inputEvent.get.asInstanceOf[DoInjectEvent], old_t))
+        }
+      }
     }
   }
 
@@ -162,12 +178,19 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val players = c.getPlayers()
     //block action of player who is not at turn
     if (reactor.name == players(t.current_player)) {
-      proceedCommand(cmd, json)
-      proceedOutput(t, reactor, cmd)
+      val inputEvent = proceedCommand(cmd, json)
+      proceedOutput(t, reactor, cmd, inputEvent)
     } else {
       reactor.publish(json_turnEnded(t, players.indexOf(reactor.name), true).toString())
     }
   }
+  private def json_player_has_injected(doInjectEvent: DoInjectEvent, t:TurnData): JsObject = JsObject(Seq(
+    "event" -> JsString("PlayerHasInjected"),
+    "playerTo" -> JsNumber(doInjectEvent.receiving_player),
+    "stashTo" -> JsNumber(doInjectEvent.stashIndex),
+    "position" -> json.JsNumber(doInjectEvent.position),
+    "card" -> cardToJSon(t.playerCardDeck.cards(t.current_player)(doInjectEvent.cardIndex))
+  ))
   private def json_player_has_discared(referringPlayer: Int, t: TurnData): JsObject = JsObject(Seq(
     "event" -> JsString("PlayerHasDiscarded"),
     "player" -> JsNumber(referringPlayer),
