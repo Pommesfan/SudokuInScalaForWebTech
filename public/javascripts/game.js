@@ -8,6 +8,7 @@ const openCardP = document.getElementById("openCardP")
 const playerCardsDiv = document.getElementById("playerCards")
 const discardedCardsDiv = document.getElementById("discardedCards")
 const currentPlayer = document.getElementById("currentPlayer")
+const currentPhase = document.getElementById("currentPhase")
 
 var playerCards = []
 var discardedCardIndices = []
@@ -110,6 +111,7 @@ function new_round(data) {
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
+    setPhase(data)
 
     let s = "Neue Runde:"
     const errorPoints = data['errorPoints']
@@ -176,11 +178,17 @@ function turnEnded(data) {
     openCardDiv.hidden = true
 }
 
+
+function setPhase(data) {
+    currentPhase.innerHTML = "Phase " + data['numberOfPhase'] + ": " + data['phaseDescription']
+}
+
 function fullLoad(data) {
     if(data['fullLoad']) {
         playerCards = data['cardStash']
         discardedCards = data['discardedStash']
         cardGroupSize = data['card_group_size']
+        setPhase(data)
     }
 }
 
@@ -241,6 +249,7 @@ function goToInject(data) {
 function newGame(data) {
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
+    setPhase(data)
 
     let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
     let names = data['players']
