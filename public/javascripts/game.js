@@ -111,7 +111,7 @@ function new_round(data) {
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
-    setPhase(data)
+    setPhaseAndPlayers(data)
 
     let s = "Neue Runde:"
     const errorPoints = data['errorPoints']
@@ -179,7 +179,9 @@ function turnEnded(data) {
 }
 
 
-function setPhase(data) {
+function setPhaseAndPlayers(data) {
+    let idx_player = sessionStorage.getItem('thisPlayerIdx')
+    currentPlayer.innerHTML = sessionStorage.getItem("player_" + idx_player)
     currentPhase.innerHTML = "Phase " + data['numberOfPhase'] + ": " + data['phaseDescription']
 }
 
@@ -188,7 +190,7 @@ function fullLoad(data) {
         playerCards = data['cardStash']
         discardedCards = data['discardedStash']
         cardGroupSize = data['card_group_size']
-        setPhase(data)
+        setPhaseAndPlayers(data)
     }
 }
 
@@ -205,7 +207,6 @@ function playersTurn(data) {
     newCardP.appendChild(drawCard(newCard['value'], newCard['color']))
     openCardP.appendChild(drawCard(openCard['value'], openCard['color']))
 
-    currentPlayer.innerHTML = get_player_name(data['activePlayer'])
     inputFormSwitch.hidden = false
     inputFormDiscard.hidden = true
     inputFormInject.hidden = true
@@ -249,7 +250,7 @@ function goToInject(data) {
 function newGame(data) {
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
-    setPhase(data)
+    setPhaseAndPlayers(data)
 
     let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
     let names = data['players']
