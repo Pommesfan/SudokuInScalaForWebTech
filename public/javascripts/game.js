@@ -166,6 +166,7 @@ function turnEnded(data) {
         alert("Ungültiger Spielzug")
     }
 
+    fullLoad(data)
     show_player_cards(playerCards, false, false, cardGroupSize)
     discarded_cards(discardedCards, false)
     inputFormSwitch.hidden = true
@@ -175,10 +176,19 @@ function turnEnded(data) {
     openCardDiv.hidden = true
 }
 
+function fullLoad(data) {
+    if(data['fullLoad']) {
+        playerCards = data['cardStash']
+        discardedCards = data['discardedStash']
+        cardGroupSize = data['card_group_size']
+    }
+}
+
 function playersTurn(data) {
     newCard = data['newCard']
     openCard = data['openCard']
 
+    fullLoad(data)
     show_player_cards(playerCards, false, true, cardGroupSize)
     discarded_cards(discardedCards, false)
 
@@ -195,16 +205,22 @@ function playersTurn(data) {
     openCardDiv.hidden = false
 }
 
-function goToDiscard() {
+function goToDiscard(data) {
     playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
+
+    fullLoad(data)
     show_player_cards(playerCards, true, false, cardGroupSize)
+    discarded_cards(discardedCards, true)
+
     inputFormSwitch.hidden = true
     inputFormDiscard.hidden = false
     newCardDiv.hidden = true
     openCardDiv.hidden = true
 }
 
-function goToInject() {
+function goToInject(data) {
+    fullLoad(data)
+
     if(selectedPlayerCard != null) {
         playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
         selectedPlayerCard = null
@@ -267,26 +283,26 @@ function playerHasDiscarded(data) {
     discarded_cards(discardedCards, false)
 }
 
+function playerHasInjected(data) {
+    let idxPlayerTo = data["playerTo"]
+    let idxStashTo = data["stashTo"]
+    let position = data["position"]
+    let card = data["card"]
+
+    let stashTo = discardedCards[idxPlayerTo][idxStashTo]
+    if (position == INJECT_TO_FRONT) {
+        stashTo.unshift(card)
+    } else if(position == INJECT_AFTER) {
+        stashTo.push(card)
+    }
+    discarded_cards(discardedCards, true)
+}
+
 function update(data) {
     let event = data['event']
 
-    function playerHasInjected(data) {
-        let idxPlayerTo = data["playerTo"]
-        let idxStashTo = data["stashTo"]
-        let position = data["position"]
-        let card = data["card"]
-
-        let stashTo = discardedCards[idxPlayerTo][idxStashTo]
-        if (position == INJECT_TO_FRONT) {
-            stashTo.unshift(card)
-        } else if(position == INJECT_AFTER) {
-            stashTo.push(card)
-        }
-        discarded_cards(discardedCards, true)
-    }
-
     if (event == "GoToDiscardEvent") {
-        goToDiscard()
+        goToDiscard(data)
     } else if(event == "NewRoundEvent") {
         new_round(data)
     } else if(event == "TurnEndedEvent") {
@@ -295,7 +311,7 @@ function update(data) {
         alert("Du bist dran!")
         playersTurn(data)
     } else if (event == "GoToInjectEvent") {
-        goToInject()
+        goToInject(data)
     }  else if (event == "NewGameEvent") {
         newGame(data)
     } else if(event == "GameEndedEvent") {

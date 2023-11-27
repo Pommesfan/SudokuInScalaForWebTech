@@ -1,4 +1,5 @@
 function discard() {
+    discardedCardIndices = []
     let values = ""
     let i = 0
 
