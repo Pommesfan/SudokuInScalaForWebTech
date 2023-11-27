@@ -18,4 +18,6 @@
 [x] Neue und offenliegende Karte nebeneinander
 [ ] Responsive-Design verbessern bei Abgelegten Karten
 [x] Canvas-Objekte und Radiobuttons, Checkboxen in Vue-Projekt nach Bedarf durch Template einfügen
-[ ] Partially send changes of game state
+[x] Partially send changes of game state
+    -> [ ] in Vue
+[ ] Code optimization (player mapping) and function proceed_output
