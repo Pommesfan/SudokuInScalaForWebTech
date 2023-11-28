@@ -181,8 +181,11 @@ function turnEnded(data) {
 
 function setPhaseAndPlayers(data) {
     let idx_player = sessionStorage.getItem('thisPlayerIdx')
-    currentPlayer.innerHTML = sessionStorage.getItem("player_" + idx_player)
-    currentPhase.innerHTML = "Phase " + data['numberOfPhase'] + ": " + data['phaseDescription']
+    let currentPlayer = sessionStorage.getItem("player_" + idx_player)
+    let n = data['numberOfPhase']
+    let description = data['phaseDescription']
+    document.getElementById("currentPlayerAndPhase").innerHTML =
+        "Aktueller Spieler: " + currentPlayer + "; Phase " + n + ": " + description
 }
 
 function fullLoad(data) {
