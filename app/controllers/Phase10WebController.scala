@@ -192,8 +192,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   private def json_full_load(fullLoad: Boolean, r: RoundData, t: TurnData, referringPlayer: Int): JsObject = if(fullLoad)
     JsObject(Seq(
       "fullLoad" -> JsBoolean(true),
-      "numberOfPhase" -> JsNumber(r.validators.head.getNumberOfPhase()),
-      "phaseDescription" -> JsString(r.validators.head.description),
+      "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
+      "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
       "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
       cardStashCurrentPlayer(t, referringPlayer),
       discardedStash(t)
@@ -217,8 +217,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
   private def json_newGame(r:RoundData, players: List[String], t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
-    "numberOfPhase" -> JsNumber(r.validators.head.getNumberOfPhase()),
-    "phaseDescription" -> JsString(r.validators.head.description),
+    "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
+    "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
     "players" -> JsArray(players.map(s => JsString(s))),
     "numberOfPlayers" -> JsNumber(players.size),
     "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),

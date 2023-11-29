@@ -10,7 +10,7 @@ class Controller extends ControllerInterface {
 
   def createCard: Card = Card(randomColor + 1, randomValue + 1)
    private def createPlayerCardDeck(numberOfPlayers: Int): PlayerCardDeck = new PlayerCardDeck(
-    List.fill(numberOfPlayers)(List.fill(10)(createCard)))
+    List.fill(numberOfPlayers)(createCheat))
   def nextPlayer(currentPlayer: Int, numberOfPlayers: Int): Int = (currentPlayer + 1) % numberOfPlayers
   def createInitialTurnData(numberOfPlayers:Int, currentPlayer:Int): TurnData = TurnData(
     currentPlayer,
@@ -31,7 +31,7 @@ class Controller extends ControllerInterface {
     RoundData(updateValidators(), countErrorpoints)
   }
 
-  def createCheat = List(Card(1,11),Card(2,11),Card(4,11),Card(3,7),Card(1,7),Card(4,7), createCard, createCard, createCard, createCard)
+  def createCheat = List(Card(1,11),Card(2,11),Card(4,11),Card(3,7),Card(1,7),Card(4,7), Card(1,11),Card(2,11), Card(1,7),Card(4,7))
 
   def getInitialState():ControllerStateInterface = new InitialState(validatorFactory)
 

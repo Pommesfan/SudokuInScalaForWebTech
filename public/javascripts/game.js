@@ -7,8 +7,6 @@ const newCardP = document.getElementById("newCardP")
 const openCardP = document.getElementById("openCardP")
 const playerCardsDiv = document.getElementById("playerCards")
 const discardedCardsDiv = document.getElementById("discardedCards")
-const currentPlayer = document.getElementById("currentPlayer")
-const currentPhase = document.getElementById("currentPhase")
 
 var playerCards = []
 var discardedCardIndices = []
@@ -165,6 +163,7 @@ function turnEnded(data) {
             load_discarded_cards()
         }
     } else {
+        injectTo = null
         alert("Ungültiger Spielzug")
     }
 
@@ -180,10 +179,10 @@ function turnEnded(data) {
 
 
 function setPhaseAndPlayers(data) {
-    let idx_player = sessionStorage.getItem('thisPlayerIdx')
+    let idx_player = parseInt(sessionStorage.getItem('thisPlayerIdx'))
     let currentPlayer = sessionStorage.getItem("player_" + idx_player)
-    let n = data['numberOfPhase']
-    let description = data['phaseDescription']
+    let n = data['numberOfPhase'][idx_player]
+    let description = data['phaseDescription'][idx_player]
     document.getElementById("currentPlayerAndPhase").innerHTML =
         "Aktueller Spieler: " + currentPlayer + "; Phase " + n + ": " + description
 }
@@ -255,7 +254,7 @@ function newGame(data) {
     cardGroupSize = data['card_group_size']
     setPhaseAndPlayers(data)
 
-    let msg = "Neues Spiel\nPhase " + data['numberOfPhase'] + ": " + data['phaseDescription'] + "\n\nSpieler:"
+    let msg = "Neues Spiel\nPhase " + data['numberOfPhase'][0] + ": " + data['phaseDescription'][0] + "\n\nSpieler:"
     let names = data['players']
     const number_of_players = data['numberOfPlayers']
     const this_player = sessionStorage.getItem("thisPlayer")
