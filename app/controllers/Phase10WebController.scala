@@ -1,17 +1,14 @@
 package controllers
 
-import model.{Card, RoundData, TurnData}
-import play.api.libs.json.{JsArray, JsNull, JsNumber, JsObject, JsString, JsValue, Json}
-import javax.inject._
-import play.api.mvc._
-import utils.{DoCreatePlayerEvent, DoDiscardEvent, DoInjectEvent, DoNoDiscardEvent, DoNoInjectEvent, DoSwitchCardEvent, GameEndedEvent, GameStartedEvent, GoToDiscardEvent, GoToInjectEvent, NewRoundEvent, Observer, OutputEvent, Phase10WebUtils, ProgramStartedEvent, TurnEndedEvent, Utils}
-import play.api.libs.streams.ActorFlow
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, _}
 import akka.stream.Materializer
-import akka.actor._
-import scala.collection.mutable.TreeMap
-
-
+import model.{Card, RoundData, TurnData}
+import play.api.libs.json
+import play.api.libs.json._
+import play.api.libs.streams.ActorFlow
+import play.api.mvc._
+import utils._
+import javax.inject._
 
 @Singleton
 class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)  extends AbstractController(cc) with Observer {
@@ -49,40 +46,51 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       l = l :+ names(i).asInstanceOf[JsString].value
     }
     c.solve(new DoCreatePlayerEvent(l))
+    webSocketReactors = List.fill(length)(None)
     Ok("{}")
   }
 
-  private def switch_cards(json: JsValue): Unit = {
+  private def switch_cards(json: JsValue): InputEvent = {
     val mode = json("mode").asInstanceOf[JsString].value
     val index = json("index").asInstanceOf[JsNumber].value.toInt
     def mode_to_Int = if (mode == "new") Utils.NEW_CARD else if (mode == "open") Utils.OPENCARD else -1
-    c.solve(new DoSwitchCardEvent(index, mode_to_Int))
+    val evt = new DoSwitchCardEvent(index, mode_to_Int)
+    c.solve(evt)
+    evt
   }
 
-  private def discard(json: JsValue): Unit = {
+  private def discard(json: JsValue): InputEvent= {
     val g = c.getGameData
     def r = g._1
     def t = g._2
     val cards = json("cards").asInstanceOf[JsString].value
     val cards_sorted = Phase10WebUtils.sort_sequences(Utils.makeGroupedIndexList(cards), r, t)
-    c.solve(new DoDiscardEvent(cards_sorted))
+    val evt = new DoDiscardEvent(cards_sorted)
+    c.solve(evt)
+    evt
   }
 
-  private def no_discard(): Unit = {
-    c.solve(new DoNoDiscardEvent)
+  private def no_discard(): InputEvent = {
+    val evt = new DoNoDiscardEvent
+    c.solve(evt)
+    evt
   }
 
-  private def no_inject(): Unit = {
-    c.solve(new DoNoInjectEvent)
+  private def no_inject(): InputEvent = {
+    val evt = new DoNoInjectEvent
+    c.solve(evt)
+    evt
   }
 
-  def inject(json: JsValue): Unit = {
+  def inject(json: JsValue): InputEvent = {
     val card_to_inject = json("card_to_inject").asInstanceOf[JsNumber].value.toInt
     val player_to = json("player_to").asInstanceOf[JsNumber].value.toInt
     val group_to = json("group_to").asInstanceOf[JsNumber].value.toInt
     val position_to = json("position_to").asInstanceOf[JsString].value
     def position_to_Int = if (position_to == "FRONT") Utils.INJECT_TO_FRONT else if (position_to == "AFTER") Utils.INJECT_AFTER else -1
-    c.solve(new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int))
+    val evt = new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int)
+    c.solve(evt)
+    evt
   }
 
   def reset(): Action[AnyContent] = {
@@ -90,76 +98,126 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     phase10
   }
 
-  private def proceedCommand(cmd: String, json: JsValue): Unit = cmd match {
-    case "switch_cards" => switch_cards(json)
-    case "discard" => discard(json)
-    case "no_discard" => no_discard()
-    case "inject" => inject(json)
-    case "no_inject" => no_inject()
-    case _ => ;
+  private def proceedCommand(cmd: String, json: JsValue): Option[InputEvent] = cmd match {
+    case "switch_cards" => Some(switch_cards(json))
+    case "discard" => Some(discard(json))
+    case "no_discard" => Some(no_discard())
+    case "inject" => Some(inject(json))
+    case "no_inject" => Some(no_inject())
+    case "getStatus" => None
+    case _ => throw new Exception("No such Command");
   }
 
-  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, isReload: Boolean): Unit = {
-    def inform_all(msg: String): Unit = webSocketReactors.foreach { reactor =>
-      reactor._2.publish(msg)
-    }
+  private def sendNewRound(players: List[String], r:RoundData, t:TurnData): Unit = players.indices.foreach { idx =>
+    val wsr_opt = webSocketReactors(idx)
+    wsr_opt.fold(ifEmpty = {})(wr => wr.publish(json_newRound(r, t, idx).toString()))
+  }
+
+  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent]): Unit = {
+    def inform_all(msg: String): Unit = webSocketReactors.foreach(
+      wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.publish(msg)))
 
     lastEvent match {
       case event: GameEndedEvent =>
         inform_all(json_gameEnded(event).toString())
-        for(r <- webSocketReactors) r._2.close()
-        webSocketReactors.clear()
+        webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.close()))
+        webSocketReactors = Nil
         return
       case _ =>
     }
 
+    val players = c.getPlayers()
+
     val g = c.getState.asInstanceOf[GameRunningControllerStateInterface]
     def new_r = g.r
     def new_t = g.t
+    val is_get_status = cmd == "getStatus"
 
-    def publishToOpponent(json: JsValue): Unit = {
-      getReactor(c.getPlayers()(new_t.current_player)) match {
-        case Some(r) => r.publish(json.toString())
-        case None =>
-      }
+    def publishToNext(json: JsValue): Unit =
+      webSocketReactors(new_t.current_player).fold(ifEmpty = {})(wsr => wsr.publish(json.toString()))
+
+    def publishToOpponents(json: JsValue): Unit = {
+      webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => {
+        if(wsr.name_idx != players(old_t.current_player))
+          wsr.publish(json.toString())
+      }))
     }
 
-    def turnEnded(): Unit = reactor.publish(json_turnEnded(new_t, old_t.current_player).toString())
+    def turnEnded(success: Boolean): Unit = reactor.publish(json_turnEnded(success).deepMerge(fullLoad).toString())
+
+    def fullLoad = json_full_load(is_get_status, new_r, new_t, new_t.current_player)
 
     lastEvent match {
       case e :GameStartedEvent =>
-        reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).toString)
+        reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).deepMerge(fullLoad).toString)
       case e :NewRoundEvent =>
-        if(!isReload)
-          inform_all(json_newRound(new_r).toString())
-        turnEnded()
-        publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
+        if(!is_get_status)
+          sendNewRound(players, new_r,new_t)
+        turnEnded(true)
+        publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent =>
-        turnEnded()
-        publishToOpponent(json_playersTurn(new_t, new_t.current_player, e.newCard))
-      case _ :GoToDiscardEvent => reactor.publish(json_discarded(new_r,new_t,new_t.current_player).toString())
-      case _ :GoToInjectEvent => reactor.publish(json_inject(new_t, new_t.current_player).toString())
+        if(cmd == "discard" && e.success)
+          publishToOpponents(json_player_has_discarded(old_t.current_player, new_t))
+        if (!is_get_status)
+          turnEnded(e.success)
+        publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard).deepMerge(fullLoad))
+      case _ :GoToDiscardEvent => reactor.publish(json_discarded(new_t.current_player).deepMerge(fullLoad).toString())
+      case _ :GoToInjectEvent =>
+        reactor.publish(json_inject(new_t.current_player).deepMerge(fullLoad).toString())
+        if (cmd == "inject" && inputEvent.nonEmpty) {
+          publishToOpponents(json_player_has_injected(inputEvent.get.asInstanceOf[DoInjectEvent], old_t).deepMerge(fullLoad))
+        }
     }
   }
 
   private def process_user_input(cmd: String, json: JsValue, reactor: WebSocketReactor): Unit = {
     val g = c.getGameData
     val t = g._2
-    val players = c.getPlayers()
     //block action of player who is not at turn
-    if (reactor.name == players(t.current_player)) {
-      proceedCommand(cmd, json)
-      proceedOutput(t, reactor, cmd=="getStatus")
+    if (reactor.name_idx == t.current_player) {
+      val inputEvent = proceedCommand(cmd, json)
+      proceedOutput(t, reactor, cmd, inputEvent)
     } else {
-      reactor.publish(json_turnEnded(t, players.indexOf(reactor.name)).toString())
+      val r = g._1
+      val idxPlayer = reactor.name_idx
+      reactor.publish(json_turnEnded(true).deepMerge(json_full_load(true, r, t, idxPlayer)).toString())
     }
   }
-  private def json_newGame(r:RoundData, players: List[String]): JsObject = JsObject(Seq(
+
+  private def json_full_load(fullLoad: Boolean, r: RoundData, t: TurnData, referringPlayer: Int): JsObject = if(fullLoad)
+    JsObject(Seq(
+      "fullLoad" -> JsBoolean(true),
+      "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
+      "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
+      "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
+      cardStashCurrentPlayer(t, referringPlayer),
+      discardedStash(t)
+    ))
+  else
+    JsObject(Seq("fullLoad" -> JsBoolean(false)))
+
+  private def json_player_has_injected(doInjectEvent: DoInjectEvent, t:TurnData): JsObject = JsObject(Seq(
+    "event" -> JsString("PlayerHasInjected"),
+    "playerTo" -> JsNumber(doInjectEvent.receiving_player),
+    "stashTo" -> JsNumber(doInjectEvent.stashIndex),
+    "position" -> json.JsNumber(doInjectEvent.position),
+    "card" -> cardToJSon(t.playerCardDeck.cards(t.current_player)(doInjectEvent.cardIndex))
+  ))
+  private def json_player_has_discarded(referringPlayer: Int, t: TurnData): JsObject = JsObject(Seq(
+    "event" -> JsString("PlayerHasDiscarded"),
+    "player" -> JsNumber(referringPlayer),
+    "cards" -> JsArray(t.discardedCardDeck.cards(referringPlayer).get.map(cs =>
+      JsArray(cs.map(c => cardToJSon(c)))
+    ))))
+
+  private def json_newGame(r:RoundData, players: List[String], t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
-    "numberOfPhase" -> JsNumber(r.validators.head.getNumberOfPhase()),
-    "phaseDescription" -> JsString(r.validators.head.description),
+    "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
+    "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
     "players" -> JsArray(players.map(s => JsString(s))),
-    "numberOfPlayers" -> JsNumber(players.size)))
+    "numberOfPlayers" -> JsNumber(players.size),
+    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
+    cardStashCurrentPlayer(t, referringPlayer)))
 
   private def json_gameEnded(e: GameEndedEvent): JsObject = JsObject(Seq(
     "event" -> JsString("GameEndedEvent"),
@@ -169,35 +227,31 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     "errorPoints" -> JsArray(e.errorPoints.map(n => JsNumber(n)))
   ))
 
-  private def json_newRound(r:RoundData): JsObject = JsObject(Seq(
+  private def json_newRound(r:RoundData, t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
     "event" -> JsString("NewRoundEvent"),
     "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
     "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
-    "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n)))))
+    "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n))),
+    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
+    cardStashCurrentPlayer(t, referringPlayer)))
 
   private def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
     "event" -> JsString("PlayersTurnEvent"),
     "activePlayer" -> JsNumber(referringPlayer),
     "newCard" -> cardToJSon(newCard),
-    "openCard" -> cardToJSon(t.openCard),
-    cardStashCurrentPlayer(t, referringPlayer),
-    discardedStash(t)))
+    "openCard" -> cardToJSon(t.openCard)))
 
-  private def json_turnEnded(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+  private def json_turnEnded(success: Boolean): JsObject = JsObject(Seq(
     "event" -> JsString("TurnEndedEvent"),
-    cardStashCurrentPlayer(t, referringPlayer),
-    discardedStash(t)))
-  private def json_discarded(r: RoundData, t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+    "success" -> JsBoolean(success)))
+
+  private def json_discarded(referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToDiscardEvent"),
-    "activePlayer" -> JsNumber(referringPlayer),
-    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
-    cardStashCurrentPlayer(t, referringPlayer),
-    discardedStash(t)))
-  private def json_inject(t: TurnData, referringPlayer:Int): JsObject = JsObject(Seq(
+    "activePlayer" -> JsNumber(referringPlayer)))
+
+  private def json_inject(referringPlayer:Int): JsObject = JsObject(Seq(
     "event" -> JsString("GoToInjectEvent"),
-    "activePlayer" -> JsNumber(referringPlayer),
-    cardStashCurrentPlayer(t, referringPlayer),
-    discardedStash(t)))
+    "activePlayer" -> JsNumber(referringPlayer)))
 
   private def discardedStash(t:TurnData): (String, JsArray) = {
     "discardedStash" -> JsArray(
@@ -233,8 +287,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  def getReactor(player: String): Option[WebSocketReactor] = webSocketReactors.get(player)
-
   private object MyWebSocketActor {
     def props(out: ActorRef): Props = {
       println("Object created")
@@ -242,9 +294,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  val webSocketReactors = new TreeMap[String, WebSocketReactor]()
-  abstract class WebSocketReactor() {
-    var name = ""
+  private var webSocketReactors: List[Option[WebSocketReactor]] = Nil
+  private abstract class WebSocketReactor() {
+    var name_idx = -1
     def publish(msg: String): Unit
     def close(): Unit
   }
@@ -266,12 +318,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       if(!players.contains(name)) {
         return
       }
+      val idx = players.indexOf(name)
 
-      if(!webSocketReactors.contains(name)) {
-        sendJsonToClient(json_newGame(c.getGameData._1, players).toString)
-      }
-      webSocketReactors.put(name, reactor)
-      reactor.name = name
+      webSocketReactors(idx).fold ({
+        val g = c.getGameData
+        sendJsonToClient(json_newGame(g._1, players, g._2, idx).toString)
+      }) (_ => {})
+      webSocketReactors = webSocketReactors.updated(idx, Some(reactor))
+      reactor.name_idx = idx
     }
 
     def receive: Receive = {
@@ -280,13 +334,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         val cmd = json("cmd").asInstanceOf[JsString].value
         if(cmd == "loginPlayer") {
           login_player(json)
-        } else if(webSocketReactors.contains(reactor.name)) {
+        } else if(reactor.name_idx >= 0) {
           process_user_input(cmd, json, reactor)
         }
     }
 
      private def sendJsonToClient(msg: String): Unit = {
-      println("Received event from Controller")
       out ! msg
     }
   }

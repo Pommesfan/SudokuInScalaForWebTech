@@ -99,3 +99,33 @@ function drawCard(number, color) {
     cutEdge(100, 125, 100, 150, 75, 150)
     return c
 }
+
+function inverted_idx_list(n, indices) {
+    let res = []
+    for(let i = 0; i < n; i++) {
+        if(!indices.includes(i)) {
+            res.push(i)
+        }
+    }
+    return res
+}
+
+function map_cards(playerCardIndices, cards) {
+    let res = []
+    for(let i = 0; i < playerCardIndices.length; i++) {
+        res.push(cards[playerCardIndices[i]])
+    }
+    return res
+}
+
+class InjectCardData {
+    constructor(playerCard, playerTo, groupTo, positionTo) {
+        this.playerCard = playerCard
+        this.playerTo = playerTo
+        this.groupTo = groupTo
+        this.positionTo = positionTo
+    }
+}
+
+const INJECT_TO_FRONT = 1
+const INJECT_AFTER = 2

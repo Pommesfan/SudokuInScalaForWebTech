@@ -4,6 +4,8 @@ function switch_card(mode) {
         return
     let card_index = parseInt(qs.value)
     websocket.send(JSON.stringify({"cmd": "switch_cards", "mode": mode, "index": card_index}))
+    selectedPlayerCard = card_index
+    switchMode = mode
 }
 
 function new_card() {
