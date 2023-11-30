@@ -145,7 +145,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
     def turnEnded(success: Boolean): Unit = reactor.publish(json_turnEnded(success).deepMerge(fullLoad).toString())
 
-    def fullLoad = json_full_load(is_get_status, new_r, new_t, new_t.current_player)
+    def fullLoad = json_full_load(is_get_status, new_r, new_t, new_t.current_player, players)
 
     lastEvent match {
       case e :GameStartedEvent =>
@@ -180,16 +180,18 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     } else {
       val r = g._1
       val idxPlayer = reactor.name_idx
-      reactor.publish(json_turnEnded(true).deepMerge(json_full_load(true, r, t, idxPlayer)).toString())
+      reactor.publish(json_turnEnded(true).deepMerge(json_full_load(true, r, t, idxPlayer, c.getPlayers())).toString())
     }
   }
 
-  private def json_full_load(fullLoad: Boolean, r: RoundData, t: TurnData, referringPlayer: Int): JsObject = if(fullLoad)
+  private def json_full_load(fullLoad: Boolean, r: RoundData, t: TurnData, referringPlayer: Int, players: List[String]): JsObject = if(fullLoad)
     JsObject(Seq(
       "fullLoad" -> JsBoolean(true),
       "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
       "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
       "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
+      "players" -> JsArray(players.map(s => JsString(s))),
+      "numberOfPlayers" -> JsNumber(players.size),
       cardStashCurrentPlayer(t, referringPlayer),
       discardedStash(t)
     ))
