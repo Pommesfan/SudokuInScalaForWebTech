@@ -20,4 +20,5 @@
 [x] Canvas-Objekte und Radiobuttons, Checkboxen in Vue-Projekt nach Bedarf durch Template einfügen
 [x] Partially send changes of game state
     -> [ ] in Vue
-[ ] Code optimization (player mapping) and function proceed_output
+[x] Code optimization (player mapping) and function proceed_output
+[ ] Vue sort cards in row
