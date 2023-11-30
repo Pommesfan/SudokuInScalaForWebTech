@@ -138,7 +138,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
     def publishToOpponents(json: JsValue): Unit = {
       webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => {
-        if(wsr.name_idx != players(old_t.current_player))
+        if(wsr.name_idx != old_t.current_player)
           wsr.publish(json.toString())
       }))
     }
