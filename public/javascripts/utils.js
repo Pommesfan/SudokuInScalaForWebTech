@@ -118,6 +118,19 @@ function map_cards(playerCardIndices, cards) {
     return res
 }
 
+function sort_cards(stash) {
+    stash.sort(function(a,b) {return a.value > b.value})
+    for(let i = 0; i < stash.length - 1; i++) {
+        let j = i+1
+        if(stash[i].value + 1 != (stash[j].value)) {
+            let a = stash.slice(0,j)
+            let b = stash.slice(j,7)
+            return b.concat(a)
+        }
+    }
+    return stash
+}
+
 class InjectCardData {
     constructor(playerCard, playerTo, groupTo, positionTo) {
         this.playerCard = playerCard

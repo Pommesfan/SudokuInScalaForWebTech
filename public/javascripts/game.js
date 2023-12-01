@@ -131,7 +131,7 @@ function load_discarded_cards() {
             let idx = indices[j]
             cardGroup.push(playerCards[idx])
         }
-        discarded_card_current_player.push(cardGroup)
+        discarded_card_current_player.push(sort_cards(cardGroup))
     }
     discardedCards[sessionStorage.getItem("thisPlayerIdx")] = discarded_card_current_player
 
