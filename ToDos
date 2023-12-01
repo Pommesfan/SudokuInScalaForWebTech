@@ -21,4 +21,4 @@
 [x] Partially send changes of game state
     -> [ ] in Vue
 [x] Code optimization (player mapping) and function proceed_output
-[ ] Vue sort cards in row
+[x] Vue sort cards in row
