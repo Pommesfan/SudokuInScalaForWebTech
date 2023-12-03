@@ -146,6 +146,8 @@ class InjectCardData {
 
 const INJECT_TO_FRONT = 1
 const INJECT_AFTER = 2
+const NEW_CARD = 1
+const OPEN_CARD = 2
 const str_number_of_players = "number_of_players"
 const str_thisPlayer = "thisPlayer"
 const str_thisPlayerIdx = "thisPlayerIdx"

@@ -82,7 +82,7 @@ function discarded_cards(cardStashes, show_radio_buttons) {
                 let col = document.createElement('div')
                 col.setAttribute("class", "col")
                 if(show_radio_buttons) {
-                    col.appendChild(radio_buttons_discarded_Cards(i,j,"FRONT"))
+                    col.appendChild(radio_buttons_discarded_Cards(i,j,INJECT_TO_FRONT))
                 }
 
                 for (let c in cards) {
@@ -92,7 +92,7 @@ function discarded_cards(cardStashes, show_radio_buttons) {
                 }
 
                 if(show_radio_buttons) {
-                    col.appendChild(radio_buttons_discarded_Cards(i,j,"AFTER"))
+                    col.appendChild(radio_buttons_discarded_Cards(i,j,INJECT_AFTER))
                 }
                 discardedCardsDiv.appendChild(col)
             }
@@ -142,14 +142,22 @@ function load_injected_card() {
     let card = playerCards[idx]
     let stashTo = discardedCards[injectTo.playerTo][injectTo.groupTo]
     let position_to = injectTo.positionTo
-    if(position_to == "FRONT") {
+    if(position_to == INJECT_TO_FRONT) {
         stashTo.unshift(card)
-    } else if(position_to == "AFTER") {
+    } else if(position_to == INJECT_AFTER) {
         stashTo.push(card)
     }
     injectTo = null
     let inverted_idx = inverted_idx_list(playerCards.length, [idx])
     playerCards = map_cards(inverted_idx, playerCards)
+}
+
+function load_new_open() {
+    if(switchMode  == NEW_CARD) {
+        playerCards[selectedPlayerCard] = newCard
+    } else if (switchMode == OPEN_CARD) {
+        playerCards[selectedPlayerCard] = openCard
+    }
 }
 
 function turnEnded(data) {
@@ -214,7 +222,7 @@ function playersTurn(data) {
 }
 
 function goToDiscard(data) {
-    playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
+    load_new_open()
 
     fullLoad(data)
     show_player_cards(playerCards, true, false, cardGroupSize)
@@ -230,7 +238,7 @@ function goToInject(data) {
     fullLoad(data)
 
     if(selectedPlayerCard != null) {
-        playerCards[selectedPlayerCard] = switchMode == "new" ? newCard : openCard
+        load_new_open()
         selectedPlayerCard = null
     }
     inputFormSwitch.hidden = true

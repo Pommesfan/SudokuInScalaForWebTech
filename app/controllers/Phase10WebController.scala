@@ -51,10 +51,9 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   private def switch_cards(json: JsValue): InputEvent = {
-    val mode = json("mode").asInstanceOf[JsString].value
+    val mode = json("mode").asInstanceOf[JsNumber].value.toInt
     val index = json("index").asInstanceOf[JsNumber].value.toInt
-    def mode_to_Int = if (mode == "new") Utils.NEW_CARD else if (mode == "open") Utils.OPENCARD else -1
-    val evt = new DoSwitchCardEvent(index, mode_to_Int)
+    val evt = new DoSwitchCardEvent(index, mode)
     c.solve(evt)
     evt
   }
@@ -86,9 +85,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val card_to_inject = json("card_to_inject").asInstanceOf[JsNumber].value.toInt
     val player_to = json("player_to").asInstanceOf[JsNumber].value.toInt
     val group_to = json("group_to").asInstanceOf[JsNumber].value.toInt
-    val position_to = json("position_to").asInstanceOf[JsString].value
-    def position_to_Int = if (position_to == "FRONT") Utils.INJECT_TO_FRONT else if (position_to == "AFTER") Utils.INJECT_AFTER else -1
-    val evt = new DoInjectEvent(player_to, card_to_inject, group_to, position_to_Int)
+    val position_to = json("position_to").asInstanceOf[JsNumber].value.toInt
+    val evt = new DoInjectEvent(player_to, card_to_inject, group_to, position_to)
     c.solve(evt)
     evt
   }
@@ -106,11 +104,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     case "no_inject" => Some(no_inject())
     case "getStatus" => None
     case _ => throw new Exception("No such Command");
-  }
-
-  private def sendNewRound(players: List[String], r:RoundData, t:TurnData): Unit = players.indices.foreach { idx =>
-    val wsr_opt = webSocketReactors(idx)
-    wsr_opt.fold(ifEmpty = {})(wr => wr.publish(json_newRound(r, t, idx).toString()))
   }
 
   private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent]): Unit = {
@@ -143,6 +136,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       }))
     }
 
+    def sendNewRound(): Unit = players.indices.foreach { idx =>
+      val wsr_opt = webSocketReactors(idx)
+      wsr_opt.fold(ifEmpty = {})(wr => wr.publish(json_newRound(new_r, new_t, idx).toString()))
+    }
+
     def turnEnded(success: Boolean): Unit = reactor.publish(json_turnEnded(success).deepMerge(fullLoad).toString())
 
     def fullLoad = json_full_load(is_get_status, new_r, new_t, new_t.current_player, players)
@@ -152,7 +150,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         reactor.publish(json_playersTurn(new_t, new_t.current_player, e.newCard).deepMerge(fullLoad).toString)
       case e :NewRoundEvent =>
         if(!is_get_status)
-          sendNewRound(players, new_r,new_t)
+          sendNewRound()
         turnEnded(true)
         publishToNext(json_playersTurn(new_t, new_t.current_player, e.newCard))
       case e :TurnEndedEvent =>

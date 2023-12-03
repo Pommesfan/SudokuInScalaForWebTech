@@ -9,11 +9,11 @@ function switch_card(mode) {
 }
 
 function new_card() {
-    switch_card("new")
+    switch_card(NEW_CARD)
 }
 
 function open_card() {
-    switch_card("open")
+    switch_card(OPEN_CARD)
 }
 
 document.getElementById("btn_new_card").onclick = new_card
