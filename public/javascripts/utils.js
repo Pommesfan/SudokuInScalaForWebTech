@@ -1,3 +1,7 @@
+function get_player_name(idx) {
+    return sessionStorage.getItem("player_" + idx)
+}
+
 function post_data(route, json) {
     fetch(route, {
         method: 'POST',
@@ -119,7 +123,7 @@ function map_cards(playerCardIndices, cards) {
 }
 
 function sort_cards(stash) {
-    stash.sort(function(a,b) {return a.value > b.value})
+    stash.sort(function(a,b) {return a.value >= b.value})
     for(let i = 0; i < stash.length - 1; i++) {
         let j = i+1
         if(stash[i].value + 1 != (stash[j].value)) {
@@ -142,3 +146,6 @@ class InjectCardData {
 
 const INJECT_TO_FRONT = 1
 const INJECT_AFTER = 2
+const str_number_of_players = "number_of_players"
+const str_thisPlayer = "thisPlayer"
+const str_thisPlayerIdx = "thisPlayerIdx"

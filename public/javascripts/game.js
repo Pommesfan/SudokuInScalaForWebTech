@@ -18,10 +18,6 @@ var injectTo = null
 var switchMode = null
 var cardGroupSize = 0
 
-function get_player_name(idx) {
-    return sessionStorage.getItem("player_" + idx)
-}
-
 function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
     playerCardsDiv.innerHTML = ""
     let rowDiv = document.createElement("div")
@@ -105,7 +101,7 @@ function discarded_cards(cardStashes, show_radio_buttons) {
 }
 
 function new_round(data) {
-    const number_of_players= sessionStorage.getItem("number_of_players")
+    const number_of_players= sessionStorage.getItem(str_number_of_players)
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
@@ -133,7 +129,7 @@ function load_discarded_cards() {
         }
         discarded_card_current_player.push(sort_cards(cardGroup))
     }
-    discardedCards[sessionStorage.getItem("thisPlayerIdx")] = discarded_card_current_player
+    discardedCards[sessionStorage.getItem(str_thisPlayerIdx)] = discarded_card_current_player
 
     //remove player cards
     let playerCardIndices = inverted_idx_list(10, discardedCardIndices.flat())
@@ -179,8 +175,8 @@ function turnEnded(data) {
 
 
 function setPhaseAndPlayers(data) {
-    let idx_player = parseInt(sessionStorage.getItem('thisPlayerIdx'))
-    let currentPlayer = sessionStorage.getItem("thisPlayer")
+    let idx_player = parseInt(sessionStorage.getItem(str_thisPlayerIdx))
+    let currentPlayer = sessionStorage.getItem(str_thisPlayer)
     let n = data['numberOfPhase'][idx_player]
     let description = data['phaseDescription'][idx_player]
     document.getElementById("currentPlayerAndPhase").innerHTML =
@@ -251,22 +247,24 @@ function goToInject(data) {
 }
 
 function loadPlayers(data) {
+    if(sessionStorage.getItem(str_number_of_players) != null)
+        return
     let names = data['players']
     const numberOfPlayers = data['numberOfPlayers']
-    const thisPlayer = sessionStorage.getItem('thisPlayer')
+    const thisPlayer = sessionStorage.getItem(str_thisPlayer)
     for(let i = 0; i < numberOfPlayers; i++) {
         sessionStorage.setItem("player_" + i, names[i])
         if(names[i] == thisPlayer)
-            sessionStorage.setItem("thisPlayerIdx", i)
+            sessionStorage.setItem(str_thisPlayerIdx, i)
     }
-    sessionStorage.setItem("number_of_players", numberOfPlayers)
+    sessionStorage.setItem(str_number_of_players, numberOfPlayers)
 }
 
 function newGameMessage(data) {
     let msg = "Neues Spiel\nPhase " + data['numberOfPhase'][0] + ": " + data['phaseDescription'][0] + "\n\nSpieler:"
-    const numberOfPlayers = sessionStorage.getItem("number_of_players")
+    const numberOfPlayers = sessionStorage.getItem(str_number_of_players)
     for(let i = 0; i < numberOfPlayers; i++) {
-        let name = sessionStorage.getItem("player_" + i)
+        let name = get_player_name(i)
         msg += "\n" + name
     }
     alert(msg)
@@ -283,12 +281,12 @@ function newGame(data) {
 function gameEnded(data) {
     let msg = "Spieler " + data['winningPlayer'] + " hat gewonnen\n"
 
-    const length = sessionStorage.getItem("number_of_players")
+    const length = sessionStorage.getItem(str_number_of_players)
     const phases = data['phases']
     const errorPoints = data['errorPoints']
 
     for(let i = 0; i < length; i++) {
-        const player = sessionStorage.getItem("player_" + i)
+        const player = get_player_name(i)
         msg += "\n" + player + ": Phase " + phases[i] + "; " + errorPoints[i] + " Fehlerpunkte"
     }
 
@@ -350,7 +348,7 @@ function connectWebSocket() {
 
     websocket.onopen = function(event) {
         console.log("Trying to connect to Server");
-        websocket.send(JSON.stringify({"cmd": "loginPlayer", "loggedInPlayer": sessionStorage.getItem("thisPlayer")}))
+        websocket.send(JSON.stringify({"cmd": "loginPlayer", "loggedInPlayer": sessionStorage.getItem(str_thisPlayer)}))
         websocket.send(JSON.stringify({"cmd": "getStatus"}))
     }
 
@@ -379,7 +377,7 @@ function connectWebSocket() {
     return websocket
 }
 
-if(sessionStorage.getItem("thisPlayer") == null) {
+if(sessionStorage.getItem(str_thisPlayer) == null) {
     document.location.replace("/")
 }
 
