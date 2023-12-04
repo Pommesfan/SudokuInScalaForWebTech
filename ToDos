@@ -16,7 +16,7 @@
 [x] Karten-Design als Web-Komponenten - Johannes
 [x] Problem wenn eine Kartenfolge über 12->1 geht
 [x] Neue und offenliegende Karte nebeneinander
-[ ] Responsive-Design verbessern bei Abgelegten Karten
+[x] Responsive-Design verbessern bei Abgelegten Karten
 [x] Canvas-Objekte und Radiobuttons, Checkboxen in Vue-Projekt nach Bedarf durch Template einfügen
 [x] Partially send changes of game state
     -> [ ] in Vue
