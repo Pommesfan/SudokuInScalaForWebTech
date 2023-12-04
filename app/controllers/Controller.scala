@@ -10,7 +10,7 @@ class Controller extends ControllerInterface {
 
   def createCard: Card = Card(randomColor + 1, randomValue + 1)
    private def createPlayerCardDeck(numberOfPlayers: Int): PlayerCardDeck = new PlayerCardDeck(
-    List.fill(numberOfPlayers)(createCheat))
+    List.fill(numberOfPlayers)(List.fill(10)(createCard)))
   def nextPlayer(currentPlayer: Int, numberOfPlayers: Int): Int = (currentPlayer + 1) % numberOfPlayers
   def createInitialTurnData(numberOfPlayers:Int, currentPlayer:Int): TurnData = TurnData(
     currentPlayer,
