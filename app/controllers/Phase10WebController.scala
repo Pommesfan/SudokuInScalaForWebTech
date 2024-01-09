@@ -49,6 +49,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       l = l :+ names(i).asInstanceOf[JsString].value
     }
     val id = createNewTeam(l)
+    println("new team:")
+    println(l)
 
     Ok(teamIdToJSon(id))
   }
@@ -190,14 +192,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
   def socket: WebSocket = WebSocket.accept[String, String] { _ =>
     ActorFlow.actorRef { out =>
-      println("Connect received")
       MyWebSocketActor.props(out)
     }
   }
 
   private object MyWebSocketActor {
     def props(out: ActorRef): Props = {
-      println("Object created")
       Props(new MyWebSocketActor(out))
     }
   }
@@ -218,11 +218,11 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
 
     def getLastEvent() = lastEvent
+    controller.add(this)
     controller.notifyObservers(lastEvent) //set correct state in TUI
   }
 
   private class MyWebSocketActor(out: ActorRef) extends Actor {
-    println("Class created")
     private val reactor = new WebSocketReactor {
       override def publish(msg: String): Unit = sendJsonToClient(msg)
 
