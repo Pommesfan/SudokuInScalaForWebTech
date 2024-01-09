@@ -33,7 +33,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
   def createNewTeam(l: List[String]) = {
     val r = Random
-    val id = r.alphanumeric.take(16).toArray.toString
+    val id = r.alphanumeric.take(16).toArray.mkString
     val c = new Controller
     c.solve(new DoCreatePlayerEvent(l))
     val team = new Team(c, List.fill(l.size)(None))

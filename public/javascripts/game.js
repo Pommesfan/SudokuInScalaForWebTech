@@ -187,8 +187,9 @@ function setPhaseAndPlayers(data) {
     let currentPlayer = sessionStorage.getItem(str_thisPlayer)
     let n = data['numberOfPhase'][idx_player]
     let description = data['phaseDescription'][idx_player]
+    let team_id = sessionStorage.getItem("team_id")
     document.getElementById("currentPlayerAndPhase").innerHTML =
-        "Aktueller Spieler: " + currentPlayer + "; Phase " + n + ": " + description
+        "Aktueller Spieler: " + currentPlayer + "; Phase " + n + ": " + description + "; Team-ID: " + team_id
 }
 
 function fullLoad(data) {
