@@ -1,6 +1,6 @@
 package utils
 
-import model.{Card, RoundData, TurnData}
+import model.{RoundData, TurnData}
 
 object Phase10WebUtils {
   def sort_sequences(cards: List[List[Int]], r: RoundData, t: TurnData): List[List[Int]] = {

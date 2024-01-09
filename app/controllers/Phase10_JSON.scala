@@ -3,7 +3,7 @@ package controllers
 import model.{Card, RoundData, TurnData}
 import play.api.libs.json
 import play.api.libs.json.{JsArray, JsBoolean, JsNull, JsNumber, JsObject, JsString}
-import utils.{DoInjectEvent, GameEndedEvent}
+import utils.{DoInjectEvent, GameEndedEvent, Utils}
 
 object Phase10_JSON {
   def json_full_load(fullLoad: Boolean, r: RoundData, t: TurnData, referringPlayer: Int, players: List[String]): JsObject = if(fullLoad)
@@ -14,6 +14,7 @@ object Phase10_JSON {
       "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
       "players" -> JsArray(players.map(s => JsString(s))),
       "numberOfPlayers" -> JsNumber(players.size),
+      "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE))),
       cardStashCurrentPlayer(t, referringPlayer),
       discardedStash(t)
     ))
@@ -41,6 +42,7 @@ object Phase10_JSON {
     "players" -> JsArray(players.map(s => JsString(s))),
     "numberOfPlayers" -> JsNumber(players.size),
     "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
+    "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE))),
     cardStashCurrentPlayer(t, referringPlayer)))
 
   def json_gameEnded(e: GameEndedEvent): JsObject = JsObject(Seq(
@@ -57,6 +59,7 @@ object Phase10_JSON {
     "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
     "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n))),
     "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
+    "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE))),
     cardStashCurrentPlayer(t, referringPlayer)))
 
   def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(

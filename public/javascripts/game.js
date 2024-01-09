@@ -17,6 +17,7 @@ var selectedPlayerCard = null
 var injectTo = null
 var switchMode = null
 var cardGroupSize = 0
+var sortCards = []
 
 function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
     playerCardsDiv.innerHTML = ""
@@ -105,6 +106,7 @@ function new_round(data) {
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
+    sortCards = data['sortCards']
     setPhaseAndPlayers(data)
 
     let s = "Neue Runde:"
@@ -127,7 +129,9 @@ function load_discarded_cards() {
             let idx = indices[j]
             cardGroup.push(playerCards[idx])
         }
-        discarded_card_current_player.push(sort_cards(cardGroup))
+        if (sortCards[i])
+            sort_cards(cardGroup)
+        discarded_card_current_player.push(cardGroup)
     }
     discardedCards[sessionStorage.getItem(str_thisPlayerIdx)] = discarded_card_current_player
 
@@ -197,6 +201,7 @@ function fullLoad(data) {
         playerCards = data['cardStash']
         discardedCards = data['discardedStash']
         cardGroupSize = data['card_group_size']
+        sortCards = data['sortCards']
         loadPlayers(data)
         setPhaseAndPlayers(data)
     }
@@ -284,6 +289,7 @@ function newGame(data) {
     setPhaseAndPlayers(data)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
+    sortCards = data['sortCards']
     newGameMessage(data)
 }
 

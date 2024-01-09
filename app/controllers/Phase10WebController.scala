@@ -31,12 +31,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     Ok(views.html.game())
   }
 
-  def createNewTeam(l: List[String]) = {
+   private def createNewTeam(l: List[String]) = {
     val r = Random
     val id = r.alphanumeric.take(16).toArray.mkString
     val c = new Controller
     c.solve(new DoCreatePlayerEvent(l))
-    val team = new Team(c, List.fill(l.size)(None))
+    val team = new Team(id, c, List.fill(l.size)(None))
     player_teams.put(id, team)
     id
   }
@@ -108,7 +108,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
   private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent], team: Team): Unit = {
     val webSocketReactors = team.webSocketReactors
-    val lastEvent = team.getLastEvent()
+    val lastEvent = team.getLastEvent
     val c = team.controller
 
     def inform_all(msg: String): Unit = webSocketReactors.foreach(
@@ -118,7 +118,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case event: GameEndedEvent =>
         inform_all(json_gameEnded(event).toString())
         webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.close()))
-        team.webSocketReactors = Nil
+        player_teams.remove(team.id)
         return
       case _ =>
     }
@@ -210,14 +210,14 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     def close(): Unit
   }
 
-  class Team(val controller: Controller, var webSocketReactors: List[Option[WebSocketReactor]]) extends Observer {
+  class Team(val id:String, val controller: Controller, var webSocketReactors: List[Option[WebSocketReactor]]) extends Observer {
     private var lastEvent: OutputEvent = new GameStartedEvent(controller.getState.asInstanceOf[SwitchCardControllerState].newCard)
     override def update(e: OutputEvent): String = {
       lastEvent = e
       ""
     }
 
-    def getLastEvent() = lastEvent
+    def getLastEvent: OutputEvent = lastEvent
     controller.add(this)
     controller.notifyObservers(lastEvent) //set correct state in TUI
   }
@@ -237,9 +237,6 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         return
 
       val team = team_opt.get
-
-      if (team.controller.isInstanceOf[InitialState])
-        return
 
       val players = team.controller.getPlayers()
       if(!players.contains(name)) {
