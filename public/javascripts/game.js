@@ -172,6 +172,7 @@ function turnEnded(data) {
         }
     } else {
         injectTo = null
+        discardedCardIndices = []
         alert("Ungültiger Spielzug")
     }
 
