@@ -16,10 +16,14 @@ function submit_player_names() {
 
 function submit_admission() {
     sessionStorage.setItem("thisPlayer", document.getElementById("admission_name").value)
-    update()
+    sessionStorage.setItem(str_teamID, document.getElementById("team_id").value)
+    document.location.replace("/game")
 }
 
-function update() {
+function update(data) {
+    let team_id = data[str_teamID]
+    sessionStorage.setItem(str_teamID, team_id)
+    alert("Team-ID:\n" + team_id)
     document.location.replace("/game")
 }
 

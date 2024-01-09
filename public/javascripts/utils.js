@@ -151,3 +151,4 @@ const OPEN_CARD = 2
 const str_number_of_players = "number_of_players"
 const str_thisPlayer = "thisPlayer"
 const str_thisPlayerIdx = "thisPlayerIdx"
+const str_teamID = "team_id"

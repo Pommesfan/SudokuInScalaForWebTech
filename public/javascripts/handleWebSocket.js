@@ -5,7 +5,11 @@ function connectWebSocket() {
 
     websocket.onopen = function(event) {
         console.log("Trying to connect to Server");
-        websocket.send(JSON.stringify({"cmd": "loginPlayer", "loggedInPlayer": sessionStorage.getItem(str_thisPlayer)}))
+        websocket.send(JSON.stringify({
+            "cmd": "loginPlayer",
+            "loggedInPlayer": sessionStorage.getItem(str_thisPlayer),
+            "team_id": sessionStorage.getItem(str_teamID)
+        }))
         websocket.send(JSON.stringify({"cmd": "getStatus"}))
     }
 

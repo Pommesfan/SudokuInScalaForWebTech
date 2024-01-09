@@ -9,18 +9,11 @@ import play.api.mvc._
 import utils._
 import javax.inject._
 import Phase10_JSON._
+import scala.collection.mutable
+import scala.util.Random
 
 @Singleton
-class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)  extends AbstractController(cc) with Observer {
-  private var lastEvent: OutputEvent = new ProgramStartedEvent
-  var c = new Controller
-  c.add(this)
-  c.notifyObservers(new ProgramStartedEvent) //set correct state in TUI
-
-  override def update(e: OutputEvent): String = {
-    lastEvent = e
-    ""
-  }
+class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)  extends AbstractController(cc) {
 
   def help: Action[AnyContent] = Action {
     Ok(views.html.help())
@@ -38,6 +31,16 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     Ok(views.html.game())
   }
 
+  def createNewTeam(l: List[String]) = {
+    val r = Random
+    val id = r.alphanumeric.take(16).toArray.toString
+    val c = new Controller
+    c.solve(new DoCreatePlayerEvent(l))
+    val team = new Team(c, List.fill(l.size)(None))
+    player_teams.put(id, team)
+    id
+  }
+
   def set_players: Action[AnyContent] = Action { request =>
     val length = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value("length").toString().toInt
     val names = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value("names").result
@@ -45,12 +48,12 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     for(i <- 0 until length) {
       l = l :+ names(i).asInstanceOf[JsString].value
     }
-    c.solve(new DoCreatePlayerEvent(l))
-    webSocketReactors = List.fill(length)(None)
-    Ok("{}")
+    val id = createNewTeam(l)
+
+    Ok(teamIdToJSon(id))
   }
 
-  private def switch_cards(json: JsValue): InputEvent = {
+  private def switch_cards(json: JsValue, c: Controller): InputEvent = {
     val mode = json("mode").asInstanceOf[JsNumber].value.toInt
     val index = json("index").asInstanceOf[JsNumber].value.toInt
     val evt = new DoSwitchCardEvent(index, mode)
@@ -58,7 +61,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     evt
   }
 
-  private def discard(json: JsValue): InputEvent= {
+  private def discard(json: JsValue, c: Controller): InputEvent= {
     val g = c.getGameData
     def r = g._1
     def t = g._2
@@ -69,19 +72,19 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     evt
   }
 
-  private def no_discard(): InputEvent = {
+  private def no_discard(c: Controller): InputEvent = {
     val evt = new DoNoDiscardEvent
     c.solve(evt)
     evt
   }
 
-  private def no_inject(): InputEvent = {
+  private def no_inject(c: Controller): InputEvent = {
     val evt = new DoNoInjectEvent
     c.solve(evt)
     evt
   }
 
-  def inject(json: JsValue): InputEvent = {
+  def inject(json: JsValue, c: Controller): InputEvent = {
     val card_to_inject = json("card_to_inject").asInstanceOf[JsNumber].value.toInt
     val player_to = json("player_to").asInstanceOf[JsNumber].value.toInt
     val group_to = json("group_to").asInstanceOf[JsNumber].value.toInt
@@ -91,22 +94,21 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     evt
   }
 
-  def reset(): Action[AnyContent] = {
-    c = new Controller
-    phase10
-  }
-
-  private def proceedCommand(cmd: String, json: JsValue): Option[InputEvent] = cmd match {
-    case "switch_cards" => Some(switch_cards(json))
-    case "discard" => Some(discard(json))
-    case "no_discard" => Some(no_discard())
-    case "inject" => Some(inject(json))
-    case "no_inject" => Some(no_inject())
+  private def proceedCommand(cmd: String, json: JsValue, c: Controller): Option[InputEvent] = cmd match {
+    case "switch_cards" => Some(switch_cards(json, c))
+    case "discard" => Some(discard(json, c))
+    case "no_discard" => Some(no_discard(c))
+    case "inject" => Some(inject(json, c))
+    case "no_inject" => Some(no_inject(c))
     case "getStatus" => None
     case _ => throw new Exception("No such Command");
   }
 
-  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent]): Unit = {
+  private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent], team: Team): Unit = {
+    val webSocketReactors = team.webSocketReactors
+    val lastEvent = team.getLastEvent()
+    val c = team.controller
+
     def inform_all(msg: String): Unit = webSocketReactors.foreach(
       wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.publish(msg)))
 
@@ -114,7 +116,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
       case event: GameEndedEvent =>
         inform_all(json_gameEnded(event).toString())
         webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.close()))
-        webSocketReactors = Nil
+        team.webSocketReactors = Nil
         return
       case _ =>
     }
@@ -169,12 +171,15 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   private def process_user_input(cmd: String, json: JsValue, reactor: WebSocketReactor): Unit = {
+    def team = reactor.team.get
+    def c = team.controller
+
     val g = c.getGameData
     val t = g._2
     //block action of player who is not at turn
     if (reactor.name_idx == t.current_player) {
-      val inputEvent = proceedCommand(cmd, json)
-      proceedOutput(t, reactor, cmd, inputEvent)
+      val inputEvent = proceedCommand(cmd, json, c)
+      proceedOutput(t, reactor, cmd, inputEvent, team)
     } else {
       val r = g._1
       val idxPlayer = reactor.name_idx
@@ -197,11 +202,23 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
   }
 
-  private var webSocketReactors: List[Option[WebSocketReactor]] = Nil
-  private abstract class WebSocketReactor {
+  private val player_teams: mutable.HashMap[String, Team] = mutable.HashMap()
+  abstract class WebSocketReactor {
+    var team: Option[Team] = None
     var name_idx: Int = -1
     def publish(msg: String): Unit
     def close(): Unit
+  }
+
+  class Team(val controller: Controller, var webSocketReactors: List[Option[WebSocketReactor]]) extends Observer {
+    private var lastEvent: OutputEvent = new GameStartedEvent(controller.getState.asInstanceOf[SwitchCardControllerState].newCard)
+    override def update(e: OutputEvent): String = {
+      lastEvent = e
+      ""
+    }
+
+    def getLastEvent() = lastEvent
+    controller.notifyObservers(lastEvent) //set correct state in TUI
   }
 
   private class MyWebSocketActor(out: ActorRef) extends Actor {
@@ -213,22 +230,30 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
 
     private def login_player(json: JsValue): Unit = {
-      if (c.isInstanceOf[InitialState]) {
-        return
-      }
-      val players = c.getPlayers()
       val name = json("loggedInPlayer").asInstanceOf[JsString].value
+      val team_id = json("team_id").asInstanceOf[JsString].value
+      val team_opt = player_teams.get(team_id)
+      if (team_opt.isEmpty)
+        return
+
+      val team = team_opt.get
+
+      if (team.controller.isInstanceOf[InitialState])
+        return
+
+      val players = team.controller.getPlayers()
       if(!players.contains(name)) {
         return
       }
       val idx = players.indexOf(name)
 
-      webSocketReactors(idx).fold ({
-        val g = c.getGameData
+      team.webSocketReactors(idx).fold ({
+        val g = team.controller.getGameData
         sendJsonToClient(json_newGame(g._1, players, g._2, idx).toString)
       }) (_ => {})
-      webSocketReactors = webSocketReactors.updated(idx, Some(reactor))
+      team.webSocketReactors = team.webSocketReactors.updated(idx, Some(reactor))
       reactor.name_idx = idx
+      reactor.team = Some(team)
     }
 
     def receive: Receive = {

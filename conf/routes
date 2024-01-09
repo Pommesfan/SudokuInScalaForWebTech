@@ -15,8 +15,6 @@ GET     /about                      controllers.Phase10WebController.about
 +nocsrf
 POST    /set_players                controllers.Phase10WebController.set_players()
 
-GET     /reset                      controllers.Phase10WebController.reset()
-
 GET     /websocket                  controllers.Phase10WebController.socket
 
 # Map static resources from the /public folder to the /assets URL path

@@ -102,4 +102,8 @@ object Phase10_JSON {
     "color" -> JsNumber(c.color),
     "value" -> JsNumber(c.value)
   ))
+
+  def teamIdToJSon(team_id: String) = JsObject(Seq(
+    "team_id" -> JsString(team_id)
+  ))
 }
