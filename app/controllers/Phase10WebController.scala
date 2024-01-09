@@ -230,16 +230,21 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
 
     private def login_player(json: JsValue): Unit = {
+      def loginFailed = reactor.publish(json_login_failed().toString())
+
       val name = json("loggedInPlayer").asInstanceOf[JsString].value
       val team_id = json("team_id").asInstanceOf[JsString].value
       val team_opt = player_teams.get(team_id)
-      if (team_opt.isEmpty)
+      if (team_opt.isEmpty) {
+        loginFailed
         return
+      }
 
       val team = team_opt.get
 
       val players = team.controller.getPlayers()
       if(!players.contains(name)) {
+        loginFailed
         return
       }
       val idx = players.indexOf(name)

@@ -109,4 +109,8 @@ object Phase10_JSON {
   def teamIdToJSon(team_id: String) = JsObject(Seq(
     "team_id" -> JsString(team_id)
   ))
+
+  def json_login_failed() = JsObject(Seq(
+    "event" -> JsString("login_failed")
+  ))
 }

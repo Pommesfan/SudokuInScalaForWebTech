@@ -307,7 +307,7 @@ function gameEnded(data) {
 
     alert(msg)
     sessionStorage.clear()
-    document.location.replace("/")
+    goto_homepage()
 }
 
 function playerHasDiscarded(data) {
@@ -329,6 +329,10 @@ function playerHasInjected(data) {
         stashTo.push(card)
     }
     discarded_cards(discardedCards, true)
+}
+
+function goto_homepage() {
+    document.location.replace("/")
 }
 
 function update(data) {
@@ -353,11 +357,14 @@ function update(data) {
         playerHasDiscarded(data)
     } else if(event == "PlayerHasInjected") {
         playerHasInjected(data)
+    } else if(event == "login_failed") {
+        alert("Login fehlgeschlagen")
+        goto_homepage()
     }
 }
 
 if(sessionStorage.getItem(str_thisPlayer) == null) {
-    document.location.replace("/")
+    goto_homepage()
 }
 
 $( document ).ready(function() {
