@@ -48,6 +48,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     val id = createNewTeam(l)
     println("new team:")
     println(l)
+    println("ID: " + id)
 
     Ok(teamIdToJSon(id))
   }
@@ -104,9 +105,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   private def proceedOutput(old_t: TurnData, reactor: WebSocketReactor, cmd: String, inputEvent: Option[InputEvent], team: Team): Unit = {
-    val webSocketReactors = team.webSocketReactors
-    val lastEvent = team.getLastEvent
-    val c = team.controller
+    def webSocketReactors = team.webSocketReactors
+    def lastEvent = team.getLastEvent
 
     def inform_all(msg: String): Unit = webSocketReactors.foreach(
       wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.publish(msg)))
@@ -116,16 +116,20 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         inform_all(json_gameEnded(event).toString())
         webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.close()))
         player_teams.remove(team.id)
-        return
-      case _ =>
+      case _ => process_output_game_running(cmd, team, reactor, inputEvent, old_t)
     }
+  }
 
-    val players = c.getPlayers()
+  private def process_output_game_running(cmd: String, team: Team, reactor: WebSocketReactor, inputEvent: Option[InputEvent], old_t: TurnData): Unit = {
+    def c = team.controller
+    def webSocketReactors = team.webSocketReactors
+    def lastEvent = team.getLastEvent
+    def state = c.getState.asInstanceOf[GameRunningControllerStateInterface]
+    def new_r = state.r
+    def new_t = state.t
+    def players = state.players
 
-    val g = c.getState.asInstanceOf[GameRunningControllerStateInterface]
-    def new_r = g.r
-    def new_t = g.t
-    val is_get_status = cmd == "getStatus"
+    def is_get_status = cmd == "getStatus"
 
     def publishToNext(json: JsValue): Unit =
       webSocketReactors(new_t.current_player).fold(ifEmpty = {})(wsr => wsr.publish(json.toString()))
@@ -138,8 +142,8 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
     }
 
     def sendNewRound(): Unit = players.indices.foreach { idx =>
-      val wsr_opt = webSocketReactors(idx)
-      wsr_opt.fold(ifEmpty = {})(wr => wr.publish(json_newRound(new_r, new_t, idx).toString()))
+      webSocketReactors(idx).fold(
+        ifEmpty = {})(wr => wr.publish(json_newRound(new_r, new_t, idx).toString()))
     }
 
     def turnEnded(success: Boolean): Unit = reactor.publish(json_turnEnded(success).deepMerge(fullLoad).toString())
@@ -170,19 +174,21 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   private def process_user_input(cmd: String, json: JsValue, reactor: WebSocketReactor): Unit = {
-    def team = reactor.team.get
+    def team = reactor.team
     def c = team.controller
 
     val g = c.getGameData
     val t = g._2
     //block action of player who is not at turn
-    if (reactor.name_idx == t.current_player) {
-      val inputEvent = proceedCommand(cmd, json, c)
-      proceedOutput(t, reactor, cmd, inputEvent, team)
-    } else {
-      val r = g._1
-      val idxPlayer = reactor.name_idx
-      reactor.publish(json_turnEnded(true).deepMerge(json_full_load(fullLoad = true, r, t, idxPlayer, c.getPlayers())).toString())
+    reactor.name_idx match {
+      case t.current_player =>
+        val inputEvent = proceedCommand(cmd, json, c)
+        proceedOutput(t, reactor, cmd, inputEvent, team)
+      case _ =>
+        val r = g._1
+        val idxPlayer = reactor.name_idx
+        reactor.publish(json_turnEnded(true)
+          .deepMerge(json_full_load(fullLoad = true, r, t, idxPlayer, c.getPlayers())).toString())
     }
   }
 
@@ -200,9 +206,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   private val player_teams: mutable.HashMap[String, Team] = mutable.HashMap()
-  abstract class WebSocketReactor {
-    var team: Option[Team] = None
-    var name_idx: Int = -1
+  abstract class WebSocketReactor(val name_idx: Int, val team: Team) {
     def publish(msg: String): Unit
     def close(): Unit
   }
@@ -220,20 +224,16 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   }
 
   private class MyWebSocketActor(out: ActorRef) extends Actor {
-    private val reactor = new WebSocketReactor {
-      override def publish(msg: String): Unit = sendJsonToClient(msg)
-
-      override def close(): Unit = out ! PoisonPill
-    }
+    private var reactor: Option[WebSocketReactor] = None
 
     private def login_player(json: JsValue): Unit = {
-      def loginFailed = reactor.publish(json_login_failed().toString())
+      def loginFailed(): Unit = sendJsonToClient(json_login_failed().toString())
 
       val name = json("loggedInPlayer").asInstanceOf[JsString].value
       val team_id = json("team_id").asInstanceOf[JsString].value
       val team_opt = player_teams.get(team_id)
       if (team_opt.isEmpty) {
-        loginFailed
+        loginFailed()
         return
       }
 
@@ -241,7 +241,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
       val players = team.controller.getPlayers()
       if(!players.contains(name)) {
-        loginFailed
+        loginFailed()
         return
       }
       val idx = players.indexOf(name)
@@ -250,19 +250,24 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         val g = team.controller.getGameData
         sendJsonToClient(json_newGame(g._1, players, g._2, idx).toString)
       }) (_ => {})
-      team.webSocketReactors = team.webSocketReactors.updated(idx, Some(reactor))
-      reactor.name_idx = idx
-      reactor.team = Some(team)
+
+      val new_reactor = new WebSocketReactor(idx, team) {
+        override def publish(msg: String): Unit = sendJsonToClient(msg)
+        override def close(): Unit = out ! PoisonPill
+      }
+
+      team.webSocketReactors = team.webSocketReactors.updated(idx, Some(new_reactor))
+      reactor = Some(new_reactor)
     }
 
     def receive: Receive = {
       case msg: String =>
         val json = Json.parse(msg)
         val cmd = json("cmd").asInstanceOf[JsString].value
-        if(cmd == "loginPlayer") {
-          login_player(json)
-        } else if(reactor.name_idx >= 0) {
-          process_user_input(cmd, json, reactor)
+
+        reactor match {
+          case Some(r) => process_user_input(cmd, json, r)
+          case None => if (cmd == "loginPlayer") login_player(json)
         }
     }
 
