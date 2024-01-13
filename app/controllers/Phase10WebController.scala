@@ -33,7 +33,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
 
    private def createNewTeam(l: List[String]) = {
     val r = Random
-    val id = r.alphanumeric.take(16).toArray.mkString
+    val id = r.alphanumeric.take(4).toArray.mkString
     val c = new Controller
     c.solve(new DoCreatePlayerEvent(l))
     val team = new Team(id, c, List.fill(l.size)(None))
@@ -44,10 +44,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
   def set_players: Action[AnyContent] = Action { request =>
     val length = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value("length").toString().toInt
     val names = request.body.asInstanceOf[AnyContentAsJson].json.asInstanceOf[JsObject].value("names").result
-    var l = List[String]()
-    for(i <- 0 until length) {
-      l = l :+ names(i).asInstanceOf[JsString].value
-    }
+    val l = (0 until length).foldLeft(List[String]())((l, i) => l :+ names(i).asInstanceOf[JsString].value)
     val id = createNewTeam(l)
     println("new team:")
     println(l)
