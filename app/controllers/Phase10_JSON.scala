@@ -9,12 +9,12 @@ object Phase10_JSON {
   def json_full_load(fullLoad: Boolean, r: RoundData, t: TurnData, referringPlayer: Int, players: List[String]): JsObject = if(fullLoad)
     JsObject(Seq(
       "fullLoad" -> JsBoolean(true),
-      "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
-      "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
-      "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
-      "players" -> JsArray(players.map(s => JsString(s))),
-      "numberOfPlayers" -> JsNumber(players.size),
-      "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE))),
+      json_numberOfPhase(r),
+      json_phaseDescription(r),
+      json_card_group_size(r, referringPlayer),
+      json_players(players),
+      json_numberOfPlayers(players),
+      json_sortCards(r, referringPlayer),
       cardStashCurrentPlayer(t, referringPlayer),
       discardedStash(t)
     ))
@@ -37,29 +37,29 @@ object Phase10_JSON {
 
   def json_newGame(r:RoundData, players: List[String], t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
     "event" -> JsString("NewGameEvent"),
-    "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
-    "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
-    "players" -> JsArray(players.map(s => JsString(s))),
-    "numberOfPlayers" -> JsNumber(players.size),
-    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
-    "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE))),
+    json_numberOfPhase(r),
+    json_phaseDescription(r),
+    json_players(players),
+    json_numberOfPlayers(players),
+    json_card_group_size(r, referringPlayer),
+    json_sortCards(r, referringPlayer),
     cardStashCurrentPlayer(t, referringPlayer)))
 
   def json_gameEnded(e: GameEndedEvent): JsObject = JsObject(Seq(
     "event" -> JsString("GameEndedEvent"),
     "winningPlayer" -> JsString(e.winningPlayer),
-    "players" -> JsArray(e.players.map(p => JsString(p))),
+    json_players(e.players),
     "phases" -> JsArray(e.phases.map(n => JsNumber(n))),
-    "errorPoints" -> JsArray(e.errorPoints.map(n => JsNumber(n)))
+    json_errorPoints(e.errorPoints)
   ))
 
   def json_newRound(r:RoundData, t:TurnData, referringPlayer: Int): JsObject = JsObject(Seq(
     "event" -> JsString("NewRoundEvent"),
-    "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase()))),
-    "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description))),
-    "errorPoints" -> JsArray(r.errorPoints.map(n => JsNumber(n))),
-    "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size),
-    "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE))),
+    json_numberOfPhase(r),
+    json_phaseDescription(r),
+    json_errorPoints(r.errorPoints),
+    json_card_group_size(r, referringPlayer),
+    json_sortCards(r, referringPlayer),
     cardStashCurrentPlayer(t, referringPlayer)))
 
   def json_playersTurn(t: TurnData, referringPlayer:Int, newCard:Card): JsObject = JsObject(Seq(
@@ -95,6 +95,13 @@ object Phase10_JSON {
     )
   }
 
+  private def json_numberOfPhase(r: RoundData) = "numberOfPhase" -> JsArray(r.validators.map(v => JsNumber(v.getNumberOfPhase())))
+  private def json_phaseDescription(r: RoundData) = "phaseDescription" -> JsArray(r.validators.map(v => JsString(v.description)))
+  private def json_players(players: List[String]) = "players" -> JsArray(players.map(s => JsString(s)))
+  private def json_numberOfPlayers(players: List[String]) = "numberOfPlayers" -> JsNumber(players.size)
+  private def json_card_group_size(r: RoundData, referringPlayer: Int) = "card_group_size" -> JsNumber(r.validators(referringPlayer).getNumberOfInputs().size)
+  private def json_errorPoints(errorPoints: List[Int]) = "errorPoints" -> JsArray(errorPoints.map(n => JsNumber(n)))
+  private def json_sortCards(r: RoundData, referringPlayer: Int) = "sortCards" -> JsArray(r.validators(referringPlayer).getCardGroups().map(cg => JsBoolean(cg == Utils.SEQUENCE)))
   private def cardStashCurrentPlayer(t: TurnData, referring_player: Int): (String, JsArray) = {
     "cardStash" -> JsArray(
       t.playerCardDeck.cards(referring_player).map(c => cardToJSon(c))
@@ -106,11 +113,11 @@ object Phase10_JSON {
     "value" -> JsNumber(c.value)
   ))
 
-  def teamIdToJSon(team_id: String) = JsObject(Seq(
+  def teamIdToJSon(team_id: String): JsObject = JsObject(Seq(
     "team_id" -> JsString(team_id)
   ))
 
-  def json_login_failed() = JsObject(Seq(
+  def json_login_failed(): JsObject = JsObject(Seq(
     "event" -> JsString("login_failed")
   ))
 }
