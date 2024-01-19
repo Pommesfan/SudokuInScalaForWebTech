@@ -17,6 +17,9 @@ var selectedPlayerCard = null
 var injectTo = null
 var switchMode = null
 var cardGroupSize = 0
+var phase_description = []
+var number_of_phase = []
+var error_points = []
 var sortCards = []
 
 function show_player_cards(cards, show_checkboxes, show_radio_buttons, cardGroupSize) {
@@ -69,8 +72,13 @@ function radio_buttons_discarded_Cards(i,j,position) {
 function discarded_cards(cardStashes, show_radio_buttons) {
     discardedCardsDiv.innerHTML = ""
     for (let i = 0; i < cardStashes.length; i++) {
-        let textView = document.createElement("p")
-        textView.innerHTML = get_player_name(i)
+        let textViewDiv = document.createElement("div")
+        let textView = document.createElement("strong")
+        textView.setAttribute("class", "player_header")
+        textViewDiv.innerHTML = textView
+        let player_header = "Spieler: " + get_player_name(i) + "; Phase " + number_of_phase[i] + ": " +
+            phase_description[i] + "; Fehlerpunkte: " + error_points[i]
+        textView.innerHTML = player_header
         discardedCardsDiv.appendChild(textView)
         let cardGroups = cardStashes[i]
         if (cardGroups == null) {
@@ -110,11 +118,11 @@ function new_round(data) {
     setPhaseAndPlayers(data)
 
     let s = "Neue Runde:"
-    const errorPoints = data['errorPoints']
-    const number_of_phase = data['numberOfPhase']
-    const phase_description = data['phaseDescription']
+    error_points = data['errorPoints']
+    phase_description = data['phaseDescription']
+    number_of_phase = data['numberOfPhase']
     for(let i = 0; i < number_of_players; i++) {
-        s += ("\n" + get_player_name(i) + ": " + errorPoints[i] + " Fehlerpunkte; Phase: " + number_of_phase[i] + ": " + phase_description[i])
+        s += ("\n" + get_player_name(i) + ": " + error_points[i] + " Fehlerpunkte; Phase: " + number_of_phase[i] + ": " + phase_description[i])
     }
     alert(s)
 }
@@ -188,13 +196,10 @@ function turnEnded(data) {
 
 
 function setPhaseAndPlayers(data) {
-    let idx_player = parseInt(sessionStorage.getItem(str_thisPlayerIdx))
     let currentPlayer = sessionStorage.getItem(str_thisPlayer)
-    let n = data['numberOfPhase'][idx_player]
-    let description = data['phaseDescription'][idx_player]
     let team_id = sessionStorage.getItem("team_id")
     document.getElementById("currentPlayerAndPhase").innerHTML =
-        "Aktueller Spieler: " + currentPlayer + "; Phase " + n + ": " + description + "; Team-ID: " + team_id
+        "Aktueller Spieler: " + currentPlayer + "; Team-ID: " + team_id
 }
 
 function fullLoad(data) {
@@ -202,6 +207,9 @@ function fullLoad(data) {
         playerCards = data['cardStash']
         discardedCards = data['discardedStash']
         cardGroupSize = data['card_group_size']
+        error_points= data['errorPoints']
+        phase_description = data['phaseDescription']
+        number_of_phase = data['numberOfPhase']
         sortCards = data['sortCards']
         loadPlayers(data)
         setPhaseAndPlayers(data)
@@ -288,6 +296,7 @@ function newGameMessage(data) {
 function newGame(data) {
     loadPlayers(data)
     setPhaseAndPlayers(data)
+    error_points = new Array(playerCards.length).fill(0)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
     sortCards = data['sortCards']

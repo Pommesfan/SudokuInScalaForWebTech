@@ -11,6 +11,7 @@ object Phase10_JSON {
       "fullLoad" -> JsBoolean(true),
       json_numberOfPhase(r),
       json_phaseDescription(r),
+      json_errorPoints(r.errorPoints),
       json_card_group_size(r, referringPlayer),
       json_players(players),
       json_numberOfPlayers(players),
