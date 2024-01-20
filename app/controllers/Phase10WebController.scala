@@ -116,6 +116,7 @@ class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system:
         inform_all(json_gameEnded(event).toString())
         webSocketReactors.foreach(wsr_opt => wsr_opt.fold(ifEmpty = {})(wsr => wsr.close()))
         player_teams.remove(team.id)
+        println("Game Ended TeamID: " + team.id + "; Winner: " + event.winningPlayer)
       case _ => process_output_game_running(cmd, team, reactor, inputEvent, old_t)
     }
   }

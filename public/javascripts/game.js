@@ -109,6 +109,16 @@ function discarded_cards(cardStashes, show_radio_buttons) {
     }
 }
 
+function newRoundMessage() {
+    const number_of_players= sessionStorage.getItem(str_number_of_players)
+    let s = "Neue Runde:"
+    for(let i = 0; i < number_of_players; i++) {
+        s += ("\n" + get_player_name(i) + ": " + error_points[i] + " Fehlerpunkte; Phase: " + number_of_phase[i]
+            + ": " + phase_description[i])
+    }
+    alert(s)
+}
+
 function new_round(data) {
     const number_of_players= sessionStorage.getItem(str_number_of_players)
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
@@ -116,15 +126,10 @@ function new_round(data) {
     cardGroupSize = data['card_group_size']
     sortCards = data['sortCards']
     setPhaseAndPlayers(data)
-
-    let s = "Neue Runde:"
     error_points = data['errorPoints']
     phase_description = data['phaseDescription']
     number_of_phase = data['numberOfPhase']
-    for(let i = 0; i < number_of_players; i++) {
-        s += ("\n" + get_player_name(i) + ": " + error_points[i] + " Fehlerpunkte; Phase: " + number_of_phase[i] + ": " + phase_description[i])
-    }
-    alert(s)
+    newRoundMessage()
 }
 
 function load_discarded_cards() {
@@ -296,7 +301,8 @@ function newGameMessage(data) {
 function newGame(data) {
     loadPlayers(data)
     setPhaseAndPlayers(data)
-    error_points = new Array(playerCards.length).fill(0)
+    const numberOfPlayers = parseInt(sessionStorage.getItem(str_number_of_players))
+    error_points = new Array(numberOfPlayers).fill(0)
     playerCards = data['cardStash']
     cardGroupSize = data['card_group_size']
     sortCards = data['sortCards']
