@@ -7,6 +7,7 @@ const newCardP = document.getElementById("newCardP")
 const openCardP = document.getElementById("openCardP")
 const playerCardsDiv = document.getElementById("playerCards")
 const discardedCardsDiv = document.getElementById("discardedCards")
+const currentPlayerP = document.getElementById("currentPlayer")
 
 var playerCards = []
 var discardedCardIndices = []
@@ -110,7 +111,7 @@ function discarded_cards(cardStashes, show_radio_buttons) {
 }
 
 function newRoundMessage() {
-    const number_of_players= sessionStorage.getItem(str_number_of_players)
+    const number_of_players= sessionStorage.getItem(str_numberOfPlayers)
     let s = "Neue Runde:"
     for(let i = 0; i < number_of_players; i++) {
         s += ("\n" + get_player_name(i) + ": " + error_points[i] + " Fehlerpunkte; Phase: " + number_of_phase[i]
@@ -120,15 +121,15 @@ function newRoundMessage() {
 }
 
 function new_round(data) {
-    const number_of_players= sessionStorage.getItem(str_number_of_players)
+    const number_of_players= sessionStorage.getItem(str_numberOfPlayers)
     discardedCards = new Array(parseInt(number_of_players)).fill(null)
-    playerCards = data['cardStash']
-    cardGroupSize = data['card_group_size']
-    sortCards = data['sortCards']
+    playerCards = data[str_cardStash]
+    cardGroupSize = data[str_card_group_size]
+    sortCards = data[str_sortCards]
     setPhaseAndPlayers(data)
-    error_points = data['errorPoints']
-    phase_description = data['phaseDescription']
-    number_of_phase = data['numberOfPhase']
+    error_points = data[str_errorPoints]
+    phase_description = data[str_phaseDescription]
+    number_of_phase = data[str_numberOfPhase]
     newRoundMessage()
 }
 
@@ -203,19 +204,18 @@ function turnEnded(data) {
 function setPhaseAndPlayers(data) {
     let currentPlayer = sessionStorage.getItem(str_thisPlayer)
     let team_id = sessionStorage.getItem("team_id")
-    document.getElementById("currentPlayerAndPhase").innerHTML =
-        "Aktueller Spieler: " + currentPlayer + "; Team-ID: " + team_id
+    currentPlayerP.innerHTML = "Aktueller Spieler: " + currentPlayer + "; Team-ID: " + team_id
 }
 
 function fullLoad(data) {
     if(data['fullLoad']) {
-        playerCards = data['cardStash']
-        discardedCards = data['discardedStash']
-        cardGroupSize = data['card_group_size']
-        error_points= data['errorPoints']
-        phase_description = data['phaseDescription']
-        number_of_phase = data['numberOfPhase']
-        sortCards = data['sortCards']
+        playerCards = data[str_cardStash]
+        discardedCards = data[str_discardedStash]
+        cardGroupSize = data[str_card_group_size]
+        error_points= data[str_errorPoints]
+        phase_description = data[str_phaseDescription]
+        number_of_phase = data[str_numberOfPhase]
+        sortCards = data[str_sortCards]
         loadPlayers(data)
         setPhaseAndPlayers(data)
     }
@@ -275,22 +275,22 @@ function goToInject(data) {
 }
 
 function loadPlayers(data) {
-    if(sessionStorage.getItem(str_number_of_players) != null)
+    if(sessionStorage.getItem(str_numberOfPlayers) != null)
         return
     let names = data['players']
-    const numberOfPlayers = data['numberOfPlayers']
+    const numberOfPlayers = data[str_numberOfPlayers]
     const thisPlayer = sessionStorage.getItem(str_thisPlayer)
     for(let i = 0; i < numberOfPlayers; i++) {
         sessionStorage.setItem("player_" + i, names[i])
         if(names[i] == thisPlayer)
             sessionStorage.setItem(str_thisPlayerIdx, i)
     }
-    sessionStorage.setItem(str_number_of_players, numberOfPlayers)
+    sessionStorage.setItem(str_numberOfPlayers, numberOfPlayers)
 }
 
 function newGameMessage(data) {
-    let msg = "Neues Spiel\nPhase " + data['numberOfPhase'][0] + ": " + data['phaseDescription'][0] + "\n\nSpieler:"
-    const numberOfPlayers = sessionStorage.getItem(str_number_of_players)
+    let msg = "Neues Spiel\nPhase " + data[str_numberOfPhase][0] + ": " + data[str_phaseDescription][0] + "\n\nSpieler:"
+    const numberOfPlayers = sessionStorage.getItem(str_numberOfPlayers)
     for(let i = 0; i < numberOfPlayers; i++) {
         let name = get_player_name(i)
         msg += "\n" + name
@@ -301,20 +301,20 @@ function newGameMessage(data) {
 function newGame(data) {
     loadPlayers(data)
     setPhaseAndPlayers(data)
-    const numberOfPlayers = parseInt(sessionStorage.getItem(str_number_of_players))
+    const numberOfPlayers = parseInt(sessionStorage.getItem(str_numberOfPlayers))
     error_points = new Array(numberOfPlayers).fill(0)
-    playerCards = data['cardStash']
-    cardGroupSize = data['card_group_size']
-    sortCards = data['sortCards']
+    playerCards = data[str_cardStash]
+    cardGroupSize = data[str_card_group_size]
+    sortCards = data[str_sortCards]
     newGameMessage(data)
 }
 
 function gameEnded(data) {
     let msg = "Spieler " + data['winningPlayer'] + " hat gewonnen\n"
 
-    const length = sessionStorage.getItem(str_number_of_players)
+    const length = sessionStorage.getItem(str_numberOfPlayers)
     const phases = data['phases']
-    const errorPoints = data['errorPoints']
+    const errorPoints = data[str_errorPoints]
 
     for(let i = 0; i < length; i++) {
         const player = get_player_name(i)
