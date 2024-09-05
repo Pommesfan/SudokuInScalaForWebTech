@@ -15,22 +15,6 @@ import scala.util.Random
 @Singleton
 class Phase10WebController @Inject()(cc: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)  extends AbstractController(cc) {
 
-  def help: Action[AnyContent] = Action {
-    Ok(views.html.help())
-  }
-
-  def about: Action[AnyContent] = Action {
-    Ok(views.html.about())
-  }
-
-  def home(): Action[AnyContent] = Action {
-    Ok(views.html.home())
-  }
-
-  def phase10: Action[AnyContent] = Action {
-    Ok(views.html.game())
-  }
-
    private def createNewTeam(l: List[String]) = {
     val r = Random
     val id = r.alphanumeric.take(4).toArray.mkString

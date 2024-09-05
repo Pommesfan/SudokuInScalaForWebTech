@@ -4,18 +4,10 @@
 
 # Controller for Sudoku
 
-GET     /                           controllers.Phase10WebController.home()
-
-GET     /game                       controllers.Phase10WebController.phase10
-
-GET     /help                       controllers.Phase10WebController.help
-
-GET     /about                      controllers.Phase10WebController.about
-
-+nocsrf
-POST    /set_players                controllers.Phase10WebController.set_players()
-
 GET     /websocket                  controllers.Phase10WebController.socket
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
++nocsrf
+POST    /set_players                controllers.Phase10WebController.set_players()
